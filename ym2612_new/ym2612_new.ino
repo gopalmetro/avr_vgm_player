@@ -21,7 +21,7 @@
 /* Dependencies */
 #include <avr/io.h>     // For I/O and other AVR registers
 #include <util/delay.h> // For timing
-#include "MIDI_parser.h" //MIDI
+
 
 /* Pinmap (Arduino UNO compatible) */
 #define YM_IC (5) // PC5 (= pin A5 for Arduino UNO)
@@ -88,8 +88,14 @@ static void setreg(uint8_t reg, uint8_t data) {
 int main(void) {
   /* activate MIDI Serial input - Gopal */
   Serial.begin(38400);
-  midiParser parser;  //-Make a MIDI parser
-  /* END activate MIDI*/
+  byte commandByte;
+  byte noteByte;
+  byte velocityByte;
+  
+  byte noteOn = 144;
+  
+  pinMode(13,OUTPUT);
+  digitalWrite(13,LOW);
 
 /* Pins setup */
 	YM_CTRL_DDR |= _BV(YM_IC) | _BV(YM_CS) | _BV(YM_WR) | _BV(YM_RD) | _BV(YM_A0) | _BV(YM_A1);
@@ -218,63 +224,32 @@ int main(void) {
 //		setreg(0x28, 0xF0); // Key on
 //		_delay_ms(3000);
 //		setreg(0x28, 0x00); // Key off
+                
+                    do{
+                      if (Serial.available()){
+                        commandByte = Serial.read();//read first byte
+                        noteByte = Serial.read();//read next byte
+                        velocityByte = Serial.read();//read final byte
+                        if (commandByte == noteOn){//if note on message
+                          //check if note == 60 and velocity > 0
+                          if (noteByte == 60 && velocityByte > 0){
+                            digitalWrite(13,HIGH);//turn on led
+                          }
+                        }
+                      }
+                    }
+                    while (Serial.available() > 2);//when at least three bytes available
+                  
 
-          unsigned char voice;
-          while(Serial.available())
-          {
-            if(parser.update(Serial.read()))  //-Feed MIDI stream to parser and execute commands
-            {
-              switch(parser.midi_cmd)
-              {
-                //*********************************************
-                // Handle MIDI notes
-                //*********************************************
-              case 0x90: //-Channel 1 (voice 0)
-              case 0x91: //-Channel 2 (voice 1)
-              case 0x92: //-Channel 3 (voice 2)
-              case 0x93: //-Channel 4 (voice 3)
-        
-                voice = parser.midi_cmd-0x90;
-                if(parser.midi_2nd)  //-Velocity not zero (could implement NOTE_OFF here)
-		{
-                        setreg(0xA4, random(B00000000,B00111111)); // Set frequency Octave
-                        setreg(0xA0, random(B00000000,B11111111)); // Set Frequency Pitch
-        	        setreg(0xA4, 0x22); // Set CH1 frequency MSB first
-        	        setreg(0xA0, 0x69); // Set CH1 frequency LSB second
-        		setreg(0x28, 0xF0); // Key on
-        		_delay_ms(3000);
-        		setreg(0x28, 0x00); // Key off
-                }
-                break;
-        
-                //*********************************************
-                // Handle MIDI controllers
-                //*********************************************
-              /*case 0xb0:  //-Channel 1 (voice 0)
-              case 0xb1:  //-Channel 2 (voice 1)
-              case 0xb2:  //-Channel 3 (voice 2)
-              case 0xb3:  //-Channel 4 (voice 3)
-                voice=parser.midi_cmd-0xb0;
-                switch(parser.midi_1st)  //-Controller number
-                {
-                case 13:  //-Controller 13 
-                  edgar.setWave(voice,parser.midi_2nd/21);
-                  break;
-                case 12:  //-Controller 12
-                  edgar.setEnvelope(voice,parser.midi_2nd/32);
-                  break;   
-                case 10:  //-Controller 10
-                  edgar.setLength(voice,parser.midi_2nd);
-                  break;  
-                case 7:   //-Controller 7
-                  edgar.setMod(voice,parser.midi_2nd);
-                  break;
-                }
-                break;*/
-              }
-            }
-          }
-	}
+		setreg(0xA4, random(B00000000,B00111111)); // Set frequency Octave
+                setreg(0xA0, random(B00000000,B11111111)); // Set Frequency Pitch
+	        setreg(0xA4, 0x22); // Set CH1 frequency MSB first
+	        setreg(0xA0, 0x69); // Set CH1 frequency LSB second
+		setreg(0x28, 0xF0); // Key on
+		_delay_ms(1000);
+		setreg(0x28, 0x00); // Key off
+                  digitalWrite(13,LOW);//turn led off
+                  }
 
 /* Compiler fix */
 	return 0;
