@@ -91,11 +91,7 @@ int main(void) {
   byte commandByte;
   byte noteByte;
   byte velocityByte;
-  
-  byte noteOn = 144;
-  
-  pinMode(13,OUTPUT);
-  digitalWrite(13,LOW);
+ 
 
 /* Pins setup */
 	YM_CTRL_DDR |= _BV(YM_IC) | _BV(YM_CS) | _BV(YM_WR) | _BV(YM_RD) | _BV(YM_A0) | _BV(YM_A1);
@@ -239,17 +235,6 @@ int main(void) {
                       }
                     }
                     while (Serial.available() > 2);//when at least three bytes available
-                  
-
-		setreg(0xA4, random(B00000000,B00111111)); // Set frequency Octave
-                setreg(0xA0, random(B00000000,B11111111)); // Set Frequency Pitch
-	        setreg(0xA4, 0x22); // Set CH1 frequency MSB first
-	        setreg(0xA0, 0x69); // Set CH1 frequency LSB second
-		setreg(0x28, 0xF0); // Key on
-		_delay_ms(1000);
-		setreg(0x28, 0x00); // Key off
-                  digitalWrite(13,LOW);//turn led off
-                  }
 
 /* Compiler fix */
 	return 0;
