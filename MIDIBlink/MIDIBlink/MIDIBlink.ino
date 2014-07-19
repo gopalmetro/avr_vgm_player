@@ -21,6 +21,23 @@ void setup() {
   Serial.begin(38400);
 }
 
+void checkMIDI(){
+  do{
+    if (Serial.available()){
+      commandByte = Serial.read();//read first byte
+      noteByte = Serial.read();//read next byte
+      velocityByte = Serial.read();//read final byte
+      if (commandByte == noteOn){//if note on message
+        //check if note == 60 and velocity > 0
+        if (noteByte == 60 && velocityByte > 0){
+          digitalWrite(13,HIGH);//turn on led
+        }
+      }
+    }
+  }
+  while (Serial.available() > 2);//when at least three bytes available
+}
+
 
 // the loop routine runs over and over again forever:
 void loop() {
