@@ -91,7 +91,7 @@ void MIDIinput() {
       statusByte = Serial.read(); // get first byte of MIDI data from computer
       switch (statusByte) {
         case 0x90: //NoteOn
-          blinkTest(1,100,1);
+          blinkTest(1,50,1);
           dataByte1 = Serial.read(); //note value
           dataByte2 = Serial.read(); //note velocity
           break;
