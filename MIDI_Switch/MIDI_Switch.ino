@@ -56,10 +56,13 @@ byte dataByte2;
 // byte dataByte1;
 // byte dataByte2;
 
-
-// -blinkTest() fires the Pin 13 LED
-// -LEDTime is the duration in microseconds taht the LED is lit; 1000 = 1 second
+// BLINKTEST - THE VERY USEFUL TOOL FOR TESTING CODE BLOCKS
+// If you want to test to see if a switch case or if statement is active, 
+// add 'blinkTest([numBlinks], [LEDHighTime], [LEDLowTime])' to the code block
+// -blinkTest() fires the LED attached to Pin 13
 // -numBlinks is the number of times the LED blinks
+// -LEDHighTime is the duration in microseconds that the LED is lit; 1000 = 1 second
+// -LEDLowTime is the duration in microseconds that the LED is off; 1000 = 1 second
 // Put the function "blinkTest([duration LED is lit], [number of blinks])" (without the quotes!) 
 // anywhere in your code to get feedback on whether or not that code is being executed
 void blinkTest(int numBlinks = 1, int LEDHighTime = 50, int LEDLowTime = 50) {
@@ -77,10 +80,9 @@ void setup(){
   digitalWrite(13,LOW);
   
   //Blink SOS on the LED, just to get the Swashbuckling off to a good start!
-  delay(500);
-  blinkTest(3,300,200);
-  blinkTest(3,600,200);
-  blinkTest(3,300,200);
+  blinkTest(3,200,200);
+  blinkTest(3,400,200);
+  blinkTest(3,200,200);
 }
   
 void MIDIinput() {
@@ -89,24 +91,21 @@ void MIDIinput() {
       statusByte = Serial.read(); // get first byte of MIDI data from computer
       switch (statusByte) {
         case 0x90: //NoteOn
-          blinkTest();
+          blinkTest(1,100,1);
           dataByte1 = Serial.read(); //note value
           dataByte2 = Serial.read(); //note velocity
           break;
         case 0x80: //NoteOff
-         blinkTest(30,2);
+         // blinkTest(1,50,50);
          dataByte1 = Serial.read();  //note value
          dataByte2 = Serial.read();   //note velocity
-            /*digitalWrite(13,HIGH); //turn on led  //// checking for Note Off (Successful!!!)
-            delay(100);
-            digitalWrite(13,LOW); //turn led off*/ 
           break;
         case 0xA0: //Aftertouch
          dataByte1 = Serial.read(); //note value
          dataByte2 = Serial.read(); //note aftertouch value
          break;
         case 0xB0: //Continuous Controller (CC)
-         blinkTest(100,3);
+         // blinkTest(1, 100, 100);
          dataByte1 = Serial.read(); // CC number
          dataByte2 = Serial.read(); // CC value
          break;
