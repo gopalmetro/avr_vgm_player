@@ -31,12 +31,12 @@
 // The second byte is either the Key/Note value, the CC number, 
 // the instrument number, the channel pressure value or 
 // the 7-bit LSBs (Least Significant Bits) for Pitch Bend
-// - As noted above, as a Data Byte, this byte is actually only 7 bits
+// - As noted above, as a Data Byte, this 'byte' is actually only 7 bits
 //   ranging in value from 0x00 to 0x7F or B00000000 to B01111111
 //
 // The third byte is either the velocity value, the touch value (aftertouch), 
 // the CC value, of the 7-biyt MSBs (Most Significant Bits) for Pitch Bend.
-// - As noted above, as a Data Byte, this byte is actually only 7 bits
+// - As noted above, as a Data Byte, this 'byte' is actually only 7 bits
 //   ranging in value from 0x00 to 0x7F or B00000000 to B01111111
 //
 // These three-byte MIDI messages are the ones the current iteration of this program will use
