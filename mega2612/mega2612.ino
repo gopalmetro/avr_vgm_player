@@ -61,7 +61,7 @@ byte statusByte;
 // MIDI Status Command message, defining the actual MIDI command 
 // When combined with the uint4_t 'MIDIChannel', the 'StatusCommand' half 
 // of the full byte-size message will be: B100000000-B11110000 or 0x8m-0xFm
-byte statusCommand = ((statusByte & B11110000) >> 4) & B00000111;
+byte statusCommand = ((statusByte & B01110000) >> 4);
 
 // The four bit MIDIChannel variable will hold the least significant bits of the initial 
 // MIDI Status Command message, defining the MIDI Channel 
@@ -116,26 +116,25 @@ void MIDIinput() {
   do {    
     if (Serial.available()) {
       statusByte = Serial.read(); // get first byte of MIDI data from computer
-      switch (statusByte) {
-        case 0x90: //NoteOn
+      switch (statusCommand) {
+        case 0x9: //NoteOn
           //blinkTest(1,50,1);
-          databyte1 = Serial.read(); //note value
-          databyte2 = Serial.read(); //note velocity
+          if (!((databyte1 = Serial.read()) & B10000000) && !((databyte2 = Serial.read()) & B10000000)) {
+            
+          }
           break;
-        case 0x80: //NoteOff
+        case 0x8: //NoteOff
          // blinkTest(3,100,10);
          databyte1 = Serial.read();  //note value
          databyte2 = Serial.read();   //note velocity
           break;
-        case 0xA0: //Aftertouch
-         databyte1 = Serial.read(); //note value
-         databyte2 = Serial.read(); //note aftertouch value
-         break;
-        case 0xB0: //Continuous Controller (CC)
+        case 0xB: //Continuous Controller (CC)
          // blinkTest(1, 100, 100);
          databyte1 = Serial.read(); // CC number
          databyte2 = Serial.read(); // CC value
          break;
+        default:
+        break;          
         }
       }
   }
@@ -155,7 +154,7 @@ void manageChannels() {
     case 0x00:
     case 0x01:
     case 0x02:
-    if blinkTest(3,50,1)
+      blinkTest(3,50,1)
     break;
 }
 
