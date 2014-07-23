@@ -1,3 +1,4 @@
+/*
 // BLINKTEST - THE VERY USEFUL TOOL FOR TESTING CODE BLOCKS
 // If you want to test to see if a switch case or if statement is active, 
 // add 'blinkTest([numBlinks], [LEDHighTime], [LEDLowTime])' to the code block
@@ -15,3 +16,4 @@ void blinkTest(int numBlinks = 1, int LEDHighTime = 50, int LEDLowTime = 50) {
     delay(LEDLowTime);
   }
 }
+*/
