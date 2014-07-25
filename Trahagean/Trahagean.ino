@@ -167,12 +167,12 @@ void MIDIinput() {
           //blinkTest(1,10,1);
           databyte1 = Serial.read();  //note value
           databyte2 = Serial.read();   //note velocity
+          pitch = pgm_read_word(&PITCHTABLE[databyte1]); //call the pitch table in tables.h to get the appropriate pitch word (word=2 bytes)
+          pitchMSB = (pitch & 0x3F00) >> 8; //extract the most significant byte from the pitch word, shift the byte down and assign it to the pitchMSB byte variable
+          pitchLSB = pitch & 0xFF; //mask out the most significant byte using 0xFF, then assign the least significant byte to pitchLSB
+          setreg(0xA4, pitchMSB); //send the note frequency MSB to the Block/Freqency MSB register on the YM2612 the note value
+          setreg(0xA0, pitchLSB); //send the note frequency LSB to the Frequency LSB register on the YM2612
           setreg(0x28, 0xF0); // Play a note ON; need to map this value to the correct algorithm "Slot(s)"
-          pitch = pgm_read_word(&PITCHS[databyte1]);
-          pitchMSB = (pitch & 0x3F00) >> 8;
-          pitchLSB = pitch & 0xFF;
-          setreg(0xA4, pitchMSB); //note value
-          setreg(0xA0, pitchLSB); //note value
           
           break;
 
