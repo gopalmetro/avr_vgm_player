@@ -4,7 +4,7 @@
 #include <avr/pgmspace.h>
 #include "tables.h"
 
-/* Pinmap (Arduino UNO compatible) */
+/* Pin map (Arduino UNO compatible) */
 #define YM_IC (5) // PC5 (= pin A5 for Arduino UNO)
 #define YM_CS (4) // PC4 (= pin A4 for Arduino UNO)
 #define YM_WR (3) // PC3 (= pin A3 for Arduino UNO)
@@ -143,7 +143,7 @@ void setup(){
 /*
 // velocityMap() will map the incoming databyte2 velocity 
 // to the appropriate Operator "Slots" based on whichever 
-// Operator Alogrithm is chosen in Register 0xB0,0xB1 and 0xB2
+// Operator Algorithm is chosen in Register 0xB0,0xB1 and 0xB2
 void velocityMap() {
   switch (algorithm)
     default:
@@ -170,7 +170,7 @@ void MIDIinput() {
           pitch = pgm_read_word(&PITCHTABLE[databyte1]); //call the pitch table in tables.h to get the appropriate pitch word (word=2 bytes)
           pitchMSB = (pitch & 0x3F00) >> 8; //extract the most significant byte from the pitch word, shift the byte down and assign it to the pitchMSB byte variable
           pitchLSB = pitch & 0xFF; //mask out the most significant byte using 0xFF, then assign the least significant byte to pitchLSB
-          setreg(0xA4, pitchMSB); //send the note frequency MSB to the Block/Freqency MSB register on the YM2612 the note value
+          setreg(0xA4, pitchMSB); //send the note frequency MSB to the Block/Frequency MSB register on the YM2612 the note value
           setreg(0xA0, pitchLSB); //send the note frequency LSB to the Frequency LSB register on the YM2612
           setreg(0x28, 0xF0); // Play a note ON; need to map this value to the correct algorithm "Slot(s)"
           
