@@ -16,9 +16,12 @@
 #include <util/delay.h> // For timing
 
 /* Pinmap (Arduino UNO compatible) */
-#define PSG_READY (5)       // PC5 (= pin A5 for Arduino UNO)
-#define PSG_WE (4)          // PC4 (= pin A4 for Arduino UNO)
-#define PSG_CE (3)          // PC3 (= pin A3 for Arduino UNO)
+// #define PSG_READY (5)       // PC5 (= pin A5 for Arduino UNO)
+// #define PSG_WE (4)          // PC4 (= pin A4 for Arduino UNO)
+// #define PSG_CE (3)          // PC3 (= pin A3 for Arduino UNO)
+#define PSG_READY (1)       // PC1 (= pin A1 for Arduino UNO)
+#define PSG_WE (3)          // PC3 (= pin A3 for Arduino UNO)
+#define PSG_CE (4)          // PC4 (= pin A4 for Arduino UNO)
 #define PSG_CTRL_DDR DDRC
 #define PSG_CTRL_PORT PORTC
 #define PSG_CTRL_PIN PINC
@@ -26,6 +29,11 @@
 #define PSG_DATA_PORT PORTD // Whole PORT D for data bus (= pins D0 to D7 for Arduino UNO)
 #define PSG_CLOCK (1)       // PB1 = OC1A (= pin D9 for Arduino UNO)
 #define PSG_CLOCK_DDR DDRB
+
+//PD0 & PD1 for serial i/o, using PD2-PD7 as YM 0-5
+#define DDATA(d) ((d << 2) & B11111100)
+// PB2 PB3 as YM 6-7
+#define BDATA(d) ((d >> 4) & B00001100)
 
 /* pinout
              ____
