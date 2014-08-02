@@ -3,13 +3,7 @@
 
 #include "YM2612.h"
 #include "tables.h"
-#include "midiParser.h"
-
-
-//rate for MIDI bridge software (for historical reasons this number is a multiple of 300)
-#define MIDI_SOFTWARE_BAUDRATE 38400
-//standard MIDI rate (1MHz/32, easier for embedded systems)
-#define MIDI_NATIVE_BAUDRATE 31250
+#include "midiPacketizer.h"
 
 
 class MegaSynth {
@@ -41,13 +35,23 @@ class MegaSynth {
     }
 
 
-    void parsePacket(const byte *packet) {
-        byte command = toMidiCommand(packet[MIDI_STATUS_INDEX]);
-        byte channel = toMidiTarget(packet[MIDI_STATUS_INDEX]);
-        if (command == MIDI_NOTEOFF)
-            noteOff(channel);
-        else if (command == MIDI_NOTEON)
-            noteOn(channel, packet[MIDI_KEY_INDEX], packet[MIDI_VELOCITY_INDEX]);
+    void parseMidiPacket(const byte *packet) {
+        if (packet == NULL) // does the packet exist?
+            return; // abort!
+        switch (toMidiCommand(packet[MIDI_STATUS_INDEX])) {
+            case MIDI_NOTEOFF:
+            noteOff(toMidiTarget(packet[MIDI_STATUS_INDEX]));
+            break;
+
+            case MIDI_NOTEON:
+            noteOn(
+                toMidiTarget(packet[MIDI_STATUS_INDEX]),
+                packet[MIDI_KEY_INDEX], packet[MIDI_VELOCITY_INDEX]);
+            break;
+            
+            default:
+            break;
+        }        
     }
 };
 

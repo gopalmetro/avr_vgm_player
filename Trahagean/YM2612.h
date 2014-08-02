@@ -46,49 +46,25 @@
         toUpdatedChanMem(name, channame, v), \
         toPart(channame))
 
-
 // pardon the do while(0) workaround (it's commonplace with macro "magic")
+#define slotSetup(channame, slotname, dt, multi, tl, ks, ar, am, dr, sr, sl, rr) \
+do { \
+    setStatefulSlotReg(   DT, channame, slotname,     dt); \
+    setStatefulSlotReg(MULTI, channame, slotname,  multi); \
+    setStatefulSlotReg(   TL, channame, slotname,     tl); \
+    setStatefulSlotReg(   KS, channame, slotname,     ks); \
+    setStatefulSlotReg(   AR, channame, slotname,     ar); \
+    setStatefulSlotReg(   AM, channame, slotname,     am); \
+    setStatefulSlotReg(   DR, channame, slotname,     dr); \
+    setStatefulSlotReg(   SR, channame, slotname,     sr); \
+    setStatefulSlotReg(   SL, channame, slotname,     sl); \
+    setStatefulSlotReg(   RR, channame, slotname,     rr); \
+} while(0)
 #define defaultVoice(channame) do { \
-    setStatefulSlotReg(   DT, channame, SLOT1,  7); \
-    setStatefulSlotReg(MULTI, channame, SLOT1,  1); \
-    setStatefulSlotReg(   DT, channame, SLOT2,  3); \
-    setStatefulSlotReg(MULTI, channame, SLOT2,  3); \
-    setStatefulSlotReg(   DT, channame, SLOT3,  0); \
-    setStatefulSlotReg(MULTI, channame, SLOT3, 13); \
-    setStatefulSlotReg(   DT, channame, SLOT4,  0); \
-    setStatefulSlotReg(MULTI, channame, SLOT4,  1); \
-    setStatefulSlotReg(   TL, channame, SLOT1, 35); \
-    setStatefulSlotReg(   TL, channame, SLOT2, 38); \
-    setStatefulSlotReg(   TL, channame, SLOT3, 45); \
-    setStatefulSlotReg(   TL, channame, SLOT4,  0); \
-    setStatefulSlotReg(   KS, channame, SLOT1,  1); \
-    setStatefulSlotReg(   AR, channame, SLOT1, 31); \
-    setStatefulSlotReg(   KS, channame, SLOT2,  1); \
-    setStatefulSlotReg(   AR, channame, SLOT2, 31); \
-    setStatefulSlotReg(   KS, channame, SLOT3,  2); \
-    setStatefulSlotReg(   AR, channame, SLOT3, 25); \
-    setStatefulSlotReg(   KS, channame, SLOT4,  2); \
-    setStatefulSlotReg(   AR, channame, SLOT4, 20); \
-    setStatefulSlotReg(   AM, channame, SLOT1,  0); \
-    setStatefulSlotReg(   DR, channame, SLOT1,  5); \
-    setStatefulSlotReg(   AM, channame, SLOT2,  0); \
-    setStatefulSlotReg(   DR, channame, SLOT2,  5); \
-    setStatefulSlotReg(   AM, channame, SLOT3,  0); \
-    setStatefulSlotReg(   DR, channame, SLOT3,  5); \
-    setStatefulSlotReg(   AM, channame, SLOT4,  0); \
-    setStatefulSlotReg(   DR, channame, SLOT4,  7); \
-    setStatefulSlotReg(   SR, channame, SLOT1,  2); \
-    setStatefulSlotReg(   SR, channame, SLOT2,  2); \
-    setStatefulSlotReg(   SR, channame, SLOT3,  2); \
-    setStatefulSlotReg(   SR, channame, SLOT4,  2); \
-    setStatefulSlotReg(   SL, channame, SLOT1,  1); \
-    setStatefulSlotReg(   RR, channame, SLOT1,  1); \
-    setStatefulSlotReg(   SL, channame, SLOT2,  1); \
-    setStatefulSlotReg(   RR, channame, SLOT2,  1); \
-    setStatefulSlotReg(   SL, channame, SLOT3,  1); \
-    setStatefulSlotReg(   RR, channame, SLOT3,  1); \
-    setStatefulSlotReg(   SL, channame, SLOT4, 10); \
-    setStatefulSlotReg(   RR, channame, SLOT4,  6); \
+    slotSetup(channame, SLOT1, 7,  1, 35, 1, 31, 0, 5, 2,  1, 1); \
+    slotSetup(channame, SLOT2, 3,  3, 38, 1, 31, 0, 5, 2,  1, 1); \
+    slotSetup(channame, SLOT3, 0, 13, 45, 2, 25, 0, 5, 2,  1, 1); \
+    slotSetup(channame, SLOT4, 0,  1,  0, 2, 20, 0, 7, 2, 10, 6); \
     \
     setStatefulChanReg(       FB, channame,   1); \
     setStatefulChanReg(ALGORITHM, channame,   0); \
@@ -110,6 +86,7 @@ class YM2612 {
         } channelMem[toLength(CHAN)];
         byte globalReg[toLength(GLOB_REG)];
     } state;
+    
 //TODO set up masks for scaling carrier slot levels on MIDI velocity
 /* algorithm : carrier slots
     0-3 : 4

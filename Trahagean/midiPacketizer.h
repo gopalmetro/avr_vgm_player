@@ -1,5 +1,5 @@
-#ifndef MIDI_PARSER_H__
-#define MIDI_PARSER_H__
+#ifndef MIDI_PACKETIZER_H__
+#define MIDI_PACKETIZER_H__
 
 #include "binary.h"
 
@@ -18,10 +18,10 @@
 //standard MIDI rate (1MHz/32, easier for 1980s embedded systems)
 #define MIDI_BAUDRATE 31250
 
-/* MIDI parser constants */
+/* MIDI constants */
 #define MIDI_PACKET_SIZE 3
-#define MIDI_MODE_STATUS 0
-#define MIDI_MODE_DATA 1
+#define MIDI_STATE_STATUS 0
+#define MIDI_STATE_DATA 1
 
 #define MIDI_STATUS_INDEX 0
 #define MIDI_KEY_INDEX 1
@@ -45,17 +45,17 @@
 
 
 /* Abstract some MIDI bit banging */
-// is "b" a data byte? return true if first bit is 0
-#define isMidiData(midiByte) (((midiByte) & B10000000) == 0)
-// is "b" a status byte? return true if it is not a data byte
-#define isMidiStatus(midiByte) (!isMidiData(midiByte))
+// is "b" a status byte? return true return true if first bit is 1
+#define isMidiStatus(midiByte) (bitRead(midiByte, 7) == 1)
+// is "b" a data byte? if it is not a status byte
+#define isMidiData(midiByte) (!isMidiStatus(midiByte))
 
 // return the most significant four bits, zero out the rest
 #define toMidiCommand(status) ((status) & B11110000)
 // return the least significant four bits, zero out the rest
 #define toMidiTarget(status) ((status) & B00001111)
 
-class MidiParser {
+class MidiPacketizer {
     byte packet[MIDI_PACKET_SIZE];
     byte have;
     byte need;
@@ -63,7 +63,7 @@ class MidiParser {
 
     void reset() {
         have = 0;
-        mode = MIDI_MODE_STATUS;
+        mode = MIDI_STATE_STATUS;
     }
     
     
@@ -73,17 +73,17 @@ class MidiParser {
     }
 
     public:
-    MidiParser() {
+    MidiPacketizer() {
         reset();
     }
 
 
     // inByte is an int because a negative value can be passed in to indicate an error with the read operation
-    // Parses one byte at a time, assembling a MIDI packet. Returns the packet buffer when complete
-    const byte *parseByte(int inByte) {
+    // Parses a midi stream one byte at a time, assembling a MIDI packet. Returns the packet buffer when complete
+    const byte *receive(int inByte) {
         if (inByte < 0) // did the read fail?
             return NULL; // abort!
-        if (mode == MIDI_MODE_STATUS && isMidiStatus(inByte)) {
+        if (mode == MIDI_STATE_STATUS && isMidiStatus(inByte)) {
             store(inByte);
             need = have;
             switch (toMidiCommand(inByte)) {
@@ -155,10 +155,10 @@ class MidiParser {
                 return NULL; // ignore packet
                 break;
             }
-            mode = MIDI_MODE_DATA; // the next bytes should be data
+            mode = MIDI_STATE_DATA; // the next bytes should be data
             return NULL; // packet isn't complete, keep reading
         }
-        if (mode == MIDI_MODE_DATA && isMidiData(inByte) && need <= MIDI_PACKET_SIZE) {
+        if (mode == MIDI_STATE_DATA && isMidiData(inByte) && need <= MIDI_PACKET_SIZE) {
             store(inByte);
             if (have == need) {
                 reset(); // finished reading
@@ -167,7 +167,7 @@ class MidiParser {
             else
                 return NULL; // packet isn't complete, keep reading
         }
-        //unrecognized packet, or stream hiccup. in either event reset the parser:
+        //invalid state: unrecognized packet, or stream hiccup. in either event reset
         reset();
         return NULL; // ignore packet
     }
