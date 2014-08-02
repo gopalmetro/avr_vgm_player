@@ -17,6 +17,13 @@
 #define toChanBaseReg(index) YM2612_CHAN_BASE_REG_INDEX_##index
 #define toGlobBaseReg(index) YM2612_GLOB_BASE_REG_INDEX_##index
 
+#define indexToChanReg(channame, index) \
+    (toChanBaseReg(index) + toValue(channame) % toLength(CHAN_PART))
+#define indexToSlotReg(channame, slotname, index) \
+	(toSlotBaseReg(index) \
+        + toValue(channame) % toLength(CHAN_PART) \
+	    + (toValue(slotname) % toLength(SLOT)) * toLength(SLOT))
+
 /* Constants to give semantic names to commonly used values */
 #define YM2612_PART1 0
 #define YM2612_PART2 1
@@ -47,8 +54,8 @@
 //	 is ((3 <= 3 && 3 < 6) ? 1 : 0) is (true && true ? 1 : 0)
 //   is (true ? 1 : 0) is 1, the result
 #define toPart(channame) \
-	(YM2612_CHAN_PART_LENGTH <= toValue(channame) \
-		&& toValue(channame) < YM2612_CHAN_LENGTH ? YM2612_PART1 : YM2612_PART2)
+	(toLength(CHAN_PART) <= toValue(channame) \
+		&& toValue(channame) < toLength(CHAN) ? toValue(PART2) : toValue(PART1))
 
 
 // Address for channel register from YM channel [012345]
@@ -268,7 +275,6 @@
 #define YM2612_T20H_WIDTH	4
 #define YM2612_T20H_SHIFT	4
 
-
 #define YM2612_GLOB_BASE_REG_INDEX_1    0x22
 // parameters for LFOFREQ: LFO frequency B00000111
 #define YM2612_LFOFREQ_BASE_REG	toChanBaseReg(1)
@@ -280,7 +286,6 @@
 #define YM2612_LFOEN_INDEX	1
 #define YM2612_LFOEN_WIDTH	1
 #define YM2612_LFOEN_SHIFT	3
-
 
 #define YM2612_GLOB_BASE_REG_INDEX_2    0x27
 // parameters for T27L: Test register 0x27 lowest six bits B00111111
@@ -298,7 +303,6 @@
 #define YM2612_SPECIALEN_INDEX	2
 #define YM2612_SPECIALEN_WIDTH	1
 #define YM2612_SPECIALEN_SHIFT	7
-
 
 #define YM2612_GLOB_BASE_REG_INDEX_3    0x2C
 // parameters for T2CH: Test register 0x2C high nibble B11110000

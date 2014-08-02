@@ -24,6 +24,9 @@
 #define BDATA(d) ((d >> 3) & B00011000)
 
 
+
+
+//TODO document the crap out of this...
 #define slotMem(name, channame, slotname) \
     (state.channelMem[toValue(channame)].slotReg[toValue(slotname)][toIndex(name)])
 #define toUpdatedSlotMem(name, channame, slotname, v) \
@@ -34,7 +37,6 @@
         toSlotReg(name, channame, slotname), \
         toUpdatedSlotMem(name, channame, slotname, v), \
         toPart(channame))
-
 #define chanMem(name, channame) \
     (state.channelMem[toValue(channame)].channelReg[toIndex(name)])
 #define toUpdatedChanMem(name, channame, v) \
@@ -45,6 +47,41 @@
         toChanReg(name, channame), \
         toUpdatedChanMem(name, channame, v), \
         toPart(channame))
+#define syncSlotReg(channame, slotname, index) \
+    setreg( \
+        indexToSlotReg(channame, slotname, index), \
+        state.channelMem[toValue(channame)] \
+            .slotReg[toValue(slotname)][index], \
+        toPart(channame))
+#define syncSlot(channame, slotname) \
+do { \
+    syncSlotReg(channame, slotname, 0); \
+    syncSlotReg(channame, slotname, 1); \
+    syncSlotReg(channame, slotname, 2); \
+    syncSlotReg(channame, slotname, 3); \
+    syncSlotReg(channame, slotname, 4); \
+    syncSlotReg(channame, slotname, 5); \
+    syncSlotReg(channame, slotname, 6); \
+} while(0)
+#define syncChanReg(channame, index) \
+    setreg( \
+        indexToChanReg(channame, index), \
+        state.channelMem[toValue(channame)].channelReg[index], \
+        toPart(channame))
+#define syncChan(channame) \
+do { \
+    syncSlot(channame, SLOT1); \
+    syncSlot(channame, SLOT2); \
+    syncSlot(channame, SLOT3); \
+    syncSlot(channame, SLOT4); \
+    syncChanReg(channame, 0); \
+    syncChanReg(channame, 1); \
+} while (0)
+#define setChan(dstname, srcname) \
+do { \
+    state.channelMem[toValue(dstname)] = state.channelMem[toValue(srcname)]; \
+    syncChan(dstname); \
+} while (0)
 
 // pardon the do while(0) workaround (it's commonplace with macro "magic")
 #define slotSetup(channame, slotname, dt, multi, tl, ks, ar, am, dr, sr, sl, rr) \
@@ -60,7 +97,8 @@ do { \
     setStatefulSlotReg(   SL, channame, slotname,     sl); \
     setStatefulSlotReg(   RR, channame, slotname,     rr); \
 } while(0)
-#define defaultVoice(channame) do { \
+#define defaultVoice(channame) \
+do { \
     slotSetup(channame, SLOT1, 7,  1, 35, 1, 31, 0, 5, 2,  1, 1); \
     slotSetup(channame, SLOT2, 3,  3, 38, 1, 31, 0, 5, 2,  1, 1); \
     slotSetup(channame, SLOT3, 0, 13, 45, 2, 25, 0, 5, 2,  1, 1); \
@@ -72,6 +110,8 @@ do { \
     setStatefulChanReg(      AMS, channame,   0); \
     setStatefulChanReg(      PMS, channame,   0); \
 } while(0)
+
+
 
 
 class YM2612 {
@@ -160,11 +200,11 @@ class YM2612 {
         setreg(0x2B, 0x00, 0); // DAC off
         /* init voices */
         defaultVoice(CHAN1);
-        defaultVoice(CHAN2);
-        defaultVoice(CHAN3);
-        defaultVoice(CHAN4);
-        defaultVoice(CHAN5);
-        defaultVoice(CHAN6);
+        setChan(CHAN2, CHAN1);
+        setChan(CHAN3, CHAN1);
+        setChan(CHAN4, CHAN1);
+        setChan(CHAN5, CHAN1);
+        setChan(CHAN6, CHAN1);
         setreg(0x90, 0x00, 0); // Proprietary
         setreg(0x94, 0x00, 0); // Proprietary
         setreg(0x98, 0x00, 0); // Proprietary
