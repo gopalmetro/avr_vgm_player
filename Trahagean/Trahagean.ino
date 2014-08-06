@@ -1,9 +1,14 @@
 /* Dependencies */
 #include <avr/sleep.h>
 #include "Arduino.h"
+
+// flag for MegaSynth to dump freqs for verification purposes
+//#define DUMP_FREQS
+// initial tuning (default is 440)
+//#define EQUAL_TEMPERAMENT_A4 440.0
 #include "MegaSynth.h"
 
-#define USE_QD_PACKETIZER
+//#define USE_QD_PACKETIZER
 
 #define BAUDRATE MIDI_NATIVE_BAUDRATE
 //#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
@@ -72,7 +77,7 @@ void setup() {
     blinkTest(3,200,200);
     //blinkTest(3,400,200);
     //blinkTest(3,200,200);
-    set_sleep_mode(SLEEP_MODE_IDLE);    
+    set_sleep_mode(SLEEP_MODE_IDLE);
 }
 
 
