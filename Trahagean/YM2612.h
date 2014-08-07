@@ -87,7 +87,15 @@ class YM2612 {
         Struc struc;
     };
     State state;
-    struct Field {
+    static const PROGMEM State regLookup;
+    static const PROGMEM byte stateLookup[PART_COUNT][REG_COUNT];
+    
+    inline byte toFlat(byte *p) { //assumes pointer is in state.flat
+        return static_cast<byte>(p - state.flat);
+    }
+    public:
+    class Field {
+        friend YM2612;
         struct BasicField {
             byte width;
             byte shift;
@@ -130,7 +138,8 @@ class YM2612 {
             GlobalField2C (byte width, byte shift)
             : BasicField(width, shift) { };
         };
-
+        
+        public:
         static const SlotField     DT;
         static const SlotField     MULTI;
         static const SlotField     TL;
@@ -143,7 +152,7 @@ class YM2612 {
         static const SlotField     RR;
         static const SlotField     SSEG;
         static const ChannelField  FB;
-        static const ChannelField  ALGORITHM;
+        static const ChannelField  ALGO;
         static const ChannelField  LR;
         static const ChannelField  AMS;
         static const ChannelField  PMS;
@@ -151,19 +160,14 @@ class YM2612 {
         static const GlobalField20 T20L;
         static const GlobalField22 LFOEN;
         static const GlobalField22 LFOFREQ;
+        static const GlobalField27 SPECIALEN;
         static const GlobalField27 T27H;
         static const GlobalField27 T27L;
-        static const GlobalField2C SPECIALEN;
+        static const GlobalField2C T2CH;
+        static const GlobalField2C T2CL;
     };
-
-    static const PROGMEM State regLookup;
-/*  static const PROGMEM State partLookup; */
-    static const PROGMEM byte stateLookup[PART_COUNT][REG_COUNT];
- 
-    inline byte toFlat(byte *p) { //assumes pointer is in state.flat
-        return static_cast<byte>(p - state.flat);
-    }
- 
+    
+     
     inline void
     updateField(part_e part, byte reg, byte width, byte shift, byte val) {
         const byte mask = bit(width) - 1;
@@ -184,7 +188,7 @@ class YM2612 {
 
 
     inline void
-    setChannel(byte channel, Field::ChannelField field, byte val) {
+    setChannel(channel_e channel, Field::ChannelField field, byte val) {
         byte flat =
             toFlat(&state.struc.channelMem[channel].channelReg[field.index]);
         updateField(
@@ -192,51 +196,45 @@ class YM2612 {
     }
 
 
-    inline void setGlobalField20(Field::GlobalField20 field, byte val) {
+    inline void setGlobal20(Field::GlobalField20 field, byte val) {
         byte flat = toFlat(&state.struc.globalMem.reg20);
         updateField(
             whichPart(flat), whichReg(flat), field.width, field.shift, val);
     }
 
 
-    inline void setGlobalField22(Field::GlobalField22 field, byte val) {
+    inline void setGlobal22(Field::GlobalField22 field, byte val) {
         byte flat = toFlat(&state.struc.globalMem.reg22);
         updateField(
             whichPart(flat), whichReg(flat), field.width, field.shift, val);
     }
 
 
-    inline void setGlobalField27(Field::GlobalField27 field, byte val) {
+    inline void setGlobal27(Field::GlobalField27 field, byte val) {
         byte flat = toFlat(&state.struc.globalMem.reg27);
         updateField(
             whichPart(flat), whichReg(flat), field.width, field.shift, val);
     }
 
 
-    inline void setGlobalField2C(Field::GlobalField2C field, byte val) {
+    inline void setGlobal2C(Field::GlobalField2C field, byte val) {
         byte flat = toFlat(&state.struc.globalMem.reg2C);
         updateField(
             whichPart(flat), whichReg(flat), field.width, field.shift, val);
     }
 
-//TODO set up masks for scaling carrier slot levels on MIDI velocity
-/* algorithm : carrier slots
-    0-3 : 4
-    4   : 2,4
-    5,6 : 2,3,4
-    7   : 1,2,3,4
-*/
 
+    private:
     static inline void write(byte data) {
-	    YM_CTRL_PORT &= ~bit(YM_CS); // CS LOW
-	    YM_DATA_PORT = DDATA(data) | (YM_DATA_PORT & B00000011);
-	    PORTB = BDATA(data) | (PORTB & B11100111);
-	    delayMicroseconds(1);
-	    YM_CTRL_PORT &= ~bit(YM_WR); // Write data
-	    delayMicroseconds(5);
-	    YM_CTRL_PORT |= bit(YM_WR);
-	    delayMicroseconds(5);
-	    YM_CTRL_PORT |= bit(YM_CS); // CS HIGH
+        YM_CTRL_PORT &= ~bit(YM_CS); // CS LOW
+        YM_DATA_PORT = DDATA(data) | (YM_DATA_PORT & B00000011);
+        PORTB = BDATA(data) | (PORTB & B11100111);
+        delayMicroseconds(1);
+        YM_CTRL_PORT &= ~bit(YM_WR); // Write data
+        delayMicroseconds(5);
+        YM_CTRL_PORT |= bit(YM_WR);
+        delayMicroseconds(5);
+        YM_CTRL_PORT |= bit(YM_CS); // CS HIGH
     }
 
 
@@ -280,6 +278,15 @@ class YM2612 {
     inline byte getReg(part_e part, byte reg) {
         return state.flat[pgm_read_byte(&stateLookup[part][reg])];
     }
+    
+    
+//TODO set up masks for scaling carrier slot levels on MIDI velocity
+/* algorithm : carrier slots
+    0-3 : 4
+    4   : 2,4
+    5,6 : 2,3,4
+    7   : 1,2,3,4
+*/
     
     public:
     void begin() {
@@ -421,7 +428,7 @@ class YM2612 {
         setSlot(channel, SLOT4, Field::RR,     6);
 
         setChannel(channel, Field::FB,          1);
-        setChannel(channel, Field::ALGORITHM,   0);
+        setChannel(channel, Field::ALGO,        0);
         setChannel(channel, Field::LR,        B11);
         setChannel(channel, Field::AMS,         0);
         setChannel(channel, Field::PMS,         0);
@@ -505,7 +512,7 @@ const YM2612::Field::SlotField     YM2612::Field::SL         (4, 4, YM2612::SLOT
 const YM2612::Field::SlotField     YM2612::Field::RR         (4, 0, YM2612::SLOT_REG6);
 const YM2612::Field::SlotField     YM2612::Field::SSEG       (4, 0, YM2612::SLOT_REG7);
 const YM2612::Field::ChannelField  YM2612::Field::FB         (3, 3, YM2612::CHAN_REG1);
-const YM2612::Field::ChannelField  YM2612::Field::ALGORITHM  (3, 0, YM2612::CHAN_REG1);
+const YM2612::Field::ChannelField  YM2612::Field::ALGO       (3, 0, YM2612::CHAN_REG1);
 const YM2612::Field::ChannelField  YM2612::Field::LR         (2, 6, YM2612::CHAN_REG2);
 const YM2612::Field::ChannelField  YM2612::Field::AMS        (2, 4, YM2612::CHAN_REG2);
 const YM2612::Field::ChannelField  YM2612::Field::PMS        (3, 0, YM2612::CHAN_REG2);
@@ -513,9 +520,12 @@ const YM2612::Field::GlobalField20 YM2612::Field::T20H       (4, 4);
 const YM2612::Field::GlobalField20 YM2612::Field::T20L       (4, 0);
 const YM2612::Field::GlobalField22 YM2612::Field::LFOEN      (1, 3);
 const YM2612::Field::GlobalField22 YM2612::Field::LFOFREQ    (3, 0);
+const YM2612::Field::GlobalField27 YM2612::Field::SPECIALEN  (1, 7);
 const YM2612::Field::GlobalField27 YM2612::Field::T27H       (1, 6);
 const YM2612::Field::GlobalField27 YM2612::Field::T27L       (6, 0);
-const YM2612::Field::GlobalField2C YM2612::Field::SPECIALEN  (1, 7);
+const YM2612::Field::GlobalField2C YM2612::Field::T2CH       (4, 4);
+const YM2612::Field::GlobalField2C YM2612::Field::T2CL       (4, 0);
+
 
 //include guard
 #endif
