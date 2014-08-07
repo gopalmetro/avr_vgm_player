@@ -301,7 +301,8 @@ class MegaSynth {
 #define EQUAL_TEMPERAMENT_B4  (EQUAL_TEMPERAMENT_A4 * ROOT12_2 * ROOT12_2)
 
 //scale by 72 to get higher integer precision
-const PROGMEM word MegaSynth::noteFreq72[MegaSynth::NOTE_COUNT] {
+const PROGMEM word MegaSynth::noteFreq72[MegaSynth::NOTE_COUNT] = 
+{
     (word)(72.0 * EQUAL_TEMPERAMENT_C4),
     (word)(72.0 * EQUAL_TEMPERAMENT_Cs4),
     (word)(72.0 * EQUAL_TEMPERAMENT_D4),
