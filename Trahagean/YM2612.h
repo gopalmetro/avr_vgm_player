@@ -255,7 +255,6 @@ class YM2612 {
 
 
     inline void setRegDirect(part_e part, byte reg, byte data) {
-        state.flat[whichState(part, reg)] = data;
         if (part == YM2612::PART1) {
             YM_CTRL_PORT &= ~(bit(YM_A1) | bit(YM_A0)); // A0 low (select register), A1 low (part I, global and YM channels 123)
         }
