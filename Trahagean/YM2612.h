@@ -453,7 +453,7 @@ class YM2612 {
 
 
 // The following tables were copied from the spreadsheet:
-const PROGMEM YM2612::State YM2612::regLookup {
+const PROGMEM YM2612::State YM2612::regLookup = {
     { //flat[]
         0x00,0x30,0x40,0x50,0x60,0x70,0x80,0x90,0x34,0x44,0x54,0x64,0x74,0x84,
         0x94,0x38,0x48,0x58,0x68,0x78,0x88,0x98,0x3C,0x4C,0x5C,0x6C,0x7C,0x8C,
@@ -473,7 +473,8 @@ const PROGMEM YM2612::State YM2612::regLookup {
 };
 
 
-const PROGMEM byte YM2612::stateLookup[YM2612::PART_COUNT][YM2612::REG_COUNT] {
+const PROGMEM byte YM2612::stateLookup[YM2612::PART_COUNT][YM2612::REG_COUNT] =
+{
     { // YM2612_PART1 parallels State.flat[]
         0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,181,0,
         182,0,0,0,0,183,0,0,0,0,184,0,0,0,1,31,61,0,8,38,68,0,15,45,75,0,22,

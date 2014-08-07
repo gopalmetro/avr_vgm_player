@@ -259,7 +259,7 @@ class MegaSynth {
 #endif
 // A precise calculation for the 12th root of two:
 #define ROOT12_2 1.0594630943592952645618252949463
-// Equal temperament uses the 12th root of two a the half-step scaler.
+// Equal temperament uses the 12th root of two as the half-step scaler.
 // There's no pow() in the preprocessor, so multiply or divide N times.
 // For example, to get from A4 to G4 scale down A4 twice with division,
 // as G4 is two half-steps (one whole-step) below A4:
