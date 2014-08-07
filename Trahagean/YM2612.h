@@ -95,7 +95,7 @@ class YM2612 {
     }
     public:
     class Field {
-        friend YM2612;
+        friend class YM2612;
         struct BasicField {
             byte width;
             byte shift;
