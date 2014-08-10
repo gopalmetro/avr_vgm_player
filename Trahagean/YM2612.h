@@ -351,14 +351,32 @@ class YM2612 {
     }
 
 
-    void frequency72(byte channel, byte block, word freq) {
+    void frequency72(byte channel, int8_t block, word freq) {
 	    byte lsbReg =  channel <= 5 ? 0xA0 : 0xAC; //if higher than 5 then use the special mode registers
 	    byte chanOffset = channel % 3; //channels are in sequence, and 012 overlap 345
 	    byte part = (3 <= channel && channel <= 5); // part is 0 unless channel is 3 4 5
+        if (block < 0) { // for octaves lower than block 0
+            freq >>= -block; //divide by 2 the number of octaves below 0
+            block = 0; // minimum allowed YM block
+        }
+        else if (block > 7) {
+            word f = (((uint32_t)(freq) << 9) / 15625);
+            byte b; //octave where 10th bit overflows
+            //find the overflow octave
+            for (b = 0; !(f & bit(10)); b++) {
+                f <<= 1; // multiply by 2 (octave)
+            }
+            byte t = block - 7; //ideal octave above 7
+            // if the overflow octave is smaller than ideal, use it instead
+            freq <<= (t < b ? t : b); // multiply by appropriate number of 2s
+            block = 7; // maximum allowed YM block
+        }
         // insert block field, adjust for factor of 72 and YM scaling:
         freq = (block << 11) | (((uint32_t)(freq) << 9) / 15625);
-	    setReg(static_cast<part_e>(part), lsbReg + chanOffset + 4, freq >> 8); //pitch MSB first, MSB register is LSB+4
-	    setReg(static_cast<part_e>(part), lsbReg + chanOffset, freq & 0xFF); //pitch LSB
+        //pitch MSB first, MSB register is LSB+4
+	    setReg(static_cast<part_e>(part), lsbReg + chanOffset + 4, freq >> 8);
+        //pitch LSB
+	    setReg(static_cast<part_e>(part), lsbReg + chanOffset, freq & 0xFF);
     }
 
 

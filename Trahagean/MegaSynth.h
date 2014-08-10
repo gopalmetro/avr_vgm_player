@@ -27,22 +27,14 @@ class MegaSynth {
         NOTE_B,
         NOTE_COUNT
     };
-    static const int8_t YM_BLOCK_OFFSET = -1;
-    static const int8_t YM_BLOCK_MAX = 7;
-
     private:
     YM2612 ym;
     static const PROGMEM word noteFreq72[NOTE_COUNT];
 
-    static inline byte keyToBlock(byte key) {
+    static inline int8_t keyToBlock(byte key) {
         // obtain octave by applying / NOTE_COUNT to key
-        byte block = key / NOTE_COUNT;
-        //apply the offset if it produces a positive value
-        if (block + YM_BLOCK_OFFSET >= 0)
-            block += YM_BLOCK_OFFSET;
-        if (block > YM_BLOCK_MAX) //if block is too big, cap it
-            block = YM_BLOCK_MAX;
-        return block;
+        // then apply the offset (-1)
+        return key / NOTE_COUNT -1;
     }
     static inline word keyToFrequency72(byte key) {
         //look up the freq72 for the key, disregarding octave by
@@ -177,12 +169,14 @@ class MegaSynth {
     void begin() {
         pinMode(LED_BUILTIN, OUTPUT);
         digitalWrite(LED_BUILTIN, LOW);
+        
         ym.begin();
 #ifdef DUMP_FREQS
         for (byte k = 0; k < 128; k++) {
             Serial.print(k);
             Serial.print(", ");
             //this is exactly the same logic in YM2612::frequency72()
+            //(octaves outside of blocks 0-7 are handled specially)
             Serial.println(
                 (keyToBlock(k) << 11)
                     | (((uint32_t)(keyToFrequency72(k)) << 9) / 15625),
