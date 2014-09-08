@@ -38,13 +38,13 @@
 
 /* pinout
              ____
- AD4 ---- D2|o   |Vcc --- 5V
- AD3 ---- D1|    |D3 ---- AD5
- AD0 ---- D0|    |CLK --- AD9
- AA1 - READY|    |D4 ---- AD6
- AA3 ---- WE|    |D5 ---- AD7
- AA4 ---- CE|    |D6 ---- AD10
-   AUDIO OUT|    |D7 ---- AD11
+ AD4 ---- D5|o   |Vcc --- 5V
+ AD3 ---- D6|    |D4 ---- AD5
+ AD0 ---- D7|    |CLK --- AD9
+ AA1 - READY|    |D3 ---- AD6
+ AA3 ---- WE|    |D2 ---- AD7
+ AA4 ---- CE|    |D1 ---- AD10
+   AUDIO OUT|    |D0 ---- AD11
  GND --- GND|____|AUDIO IN
       
 sn76489 to Arduino        

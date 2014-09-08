@@ -1,3 +1,21 @@
+/* YM2612 pinout
+            ________
+GND --- GND|o       |0M ---- 
+D2  ---- D0|        |Vcc --- 
+D3  ---- D1|        |A.Vcc - 
+D4  ---- D2|        |OUT L - 
+D5  ---- D3|        |Out R - 
+D6  ---- D4|        |A.GND - GND
+D7  ---- D5|        |A1 ---- A0
+D12 ---- D6|        |A0 ---- A1
+D11 ---- D7|        |RD ---- A2
+NC  ---- NC|        |WR ---- A3
+A5  ---- IC|        |CS ---- A4
+GND --- GND|________|IRQ
+
+*/
+
+
 /* Dependencies */
 #include <avr/sleep.h>
 #include "Arduino.h"
@@ -8,7 +26,7 @@
 //#define EQUAL_TEMPERAMENT_A4 440.0
 #include "MegaSynth.h"
 
-//#define USE_QD_PACKETIZER
+#define USE_QD_PACKETIZER
 
 #define BAUDRATE MIDI_NATIVE_BAUDRATE
 //#define BAUDRATE MIDI_SOFTWARE_BAUDRATE

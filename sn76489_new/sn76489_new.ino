@@ -142,7 +142,7 @@ int main(void) {
 	TCCR1B = _BV(WGM12) | _BV(CS10); /* CTC mode with prescaler /1 */
 	TCCR1C = 0;                      /* Flag reset */
 	TCNT1 = 0;                       /* Counter reset */
-	OCR1A = 1;                       /* Divide base clock by 4 */
+	OCR1A = 0;                       /* Divide base clock by 4 */
 	
 	/* SN76489 Test code */ 
 	setFrequency(0, 392); // Sol
