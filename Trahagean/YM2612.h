@@ -4,25 +4,50 @@
 #include "Arduino.h"
 #include "YM2612_addr.h"
 
+
 /* Pin map (Arduino UNO compatible) */
-#define YM_IC (5) // PC5 (= pin A5 for Arduino UNO)
-#define YM_CS (4) // PC4 (= pin A4 for Arduino UNO)
-#define YM_WR (3) // PC3 (= pin A3 for Arduino UNO)
-#define YM_RD (2) // PC2 (= pin A2 for Arduino UNO)
-#define YM_A0 (1) // PC1 (= pin A1 for Arduino UNO)
-#define YM_A1 (0) // PC0 (= pin A0 for Arduino UNO)
-#define YM_CTRL_DDR DDRC
-#define YM_CTRL_PORT PORTC
-#define YM_DATA_DDR DDRD
-#define YM_DATA_PORT PORTD // Whole PORT D for data bus (= pins D0 to D7 for Arduino UNO)
-#define YM_MCLOCK (1) // PB1 = OC1A (= pin D9 for Arduino UNO)
-#define YM_MCLOCK_DDR DDRB
+/*PORTC corresponds to analog pins on the Uno */
+#define YM2612_IC_PORT PORTC
+#define YM2612_IC_DDR  DDRC 
+#define YM2612_IC_BIT  PORTC5
+#define YM2612_CS_PORT PORTC
+#define YM2612_CS_DDR  DDRC
+#define YM2612_CS_BIT  PORTC4
+#define YM2612_WR_PORT PORTC
+#define YM2612_WR_DDR  DDRC
+#define YM2612_WR_BIT  PORTC2
+#define YM2612_A0_PORT PORTC
+#define YM2612_A0_DDR  DDRC
+#define YM2612_A0_BIT  PORTC1
+#define YM2612_A1_PORT PORTC
+#define YM2612_A1_DDR  DDRC
+#define YM2612_A1_BIT  PORTC0
+// RD pin needs pullup. It isn't used.
 
-//PD0 & PD1 for serial i/o, using PD2-PD7 as YM 0-5
-#define DDATA(d) ((d << 2) & B11111100)
-// PB2 PB3 as YM 6-7
-#define BDATA(d) ((d >> 3) & B00011000)
+//Pin map for data pins is a bit complicated:
+//YM2612_D0 through YM2612_D3 map to PORTD pins 4-7 -- Uno digital pins 4-7
+//YM2612_D4 through YM2612_D7 map to PORTB pins 2-5 -- Uno digital pins 10-13
+#define YM2612_DATA_PORTD_MASK B11110000
+#define YM2612_DATA_PORTD_BITBANG(b) ((b) << 4)
 
+#define YM2612_DATA_PORTB_MASK B00111100
+#define YM2612_DATA_PORTB_BITBANG(b) ((b) >> 2)
+
+
+#if !defined(YM2612_DATA_PORTB_MASK) \
+    && !defined(YM2612_DATA_PORTC_MASK) \
+    && !defined(YM2612_DATA_PORTD_MASK)
+#error "define at least one YM2612_DATA_PORT[BCD]_MASK"
+#endif
+#if (defined(YM2612_DATA_PORTB_MASK) && !defined(YM2612_DATA_PORTB_BITBANG))
+#error "YM2612_DATA_PORTB_MASK defined without YM2612_DATA_PORTB_BITBANG(b)"
+#endif
+#if (defined(YM2612_DATA_PORTC_MASK) && !defined(YM2612_DATA_PORTC_BITBANG))
+#error "YM2612_DATA_PORTC_MASK defined without YM2612_DATA_PORTC_BITBANG(b)"
+#endif
+#if (defined(YM2612_DATA_PORTD_MASK) && !defined(YM2612_DATA_PORTD_BITBANG))
+#error "YM2612_DATA_PORTD_MASK defined without YM2612_DATA_PORTD_BITBANG(b)"
+#endif
 
 class YM2612 {
     public:
@@ -226,15 +251,20 @@ class YM2612 {
 
     private:
     static inline void write(byte data) {
-        YM_CTRL_PORT &= ~bit(YM_CS); // CS LOW
-        YM_DATA_PORT = DDATA(data) | (YM_DATA_PORT & B00000011);
-        PORTB = BDATA(data) | (PORTB & B11100111);
+#ifdef YM2612_DATA_PORTB_MASK
+        PORTB = (PORTB & ~(YM2612_DATA_PORTB_MASK)) | (YM2612_DATA_PORTB_BITBANG(data) & YM2612_DATA_PORTB_MASK);
+#endif        
+#ifdef YM2612_DATA_PORTC_MASK
+        PORTC = (PORTC & ~(YM2612_DATA_PORTC_MASK)) | (YM2612_DATA_PORTC_BITBANG(data) & YM2612_DATA_PORTC_MASK);
+#endif
+#ifdef YM2612_DATA_PORTD_MASK
+        PORTD = (PORTD & ~(YM2612_DATA_PORTD_MASK)) | (YM2612_DATA_PORTD_BITBANG(data) & YM2612_DATA_PORTD_MASK);
+#endif
         delayMicroseconds(1);
-        YM_CTRL_PORT &= ~bit(YM_WR); // Write data
+        YM2612_WR_PORT &= ~bit(YM2612_WR_BIT);
         delayMicroseconds(5);
-        YM_CTRL_PORT |= bit(YM_WR);
+        YM2612_WR_PORT |= bit(YM2612_WR_BIT);
         delayMicroseconds(5);
-        YM_CTRL_PORT |= bit(YM_CS); // CS HIGH
     }
 
 
@@ -243,9 +273,9 @@ class YM2612 {
     }
     
     
-    inline part_e whichPart(byte index) {
-        return 91 <= index && index <= 180 ? PART2 : PART1; // range from spreadsheet
-        //return static_cast<part_e>(pgm_read_byte(&partLookup.flat[index]));
+    static inline part_e whichPart(byte index) {
+        // range from spreadsheet
+        return 91 <= index && index <= 180 ? YM2612::PART2 : YM2612::PART1;
     }
 
 
@@ -254,27 +284,31 @@ class YM2612 {
     }
 
 
-    inline void setRegDirect(part_e part, byte reg, byte data) {
+    void setRegDirect(part_e part, byte reg, byte data) {
+        noInterrupts();
         if (part == YM2612::PART1) {
-            YM_CTRL_PORT &= ~(bit(YM_A1) | bit(YM_A0)); // A0 low (select register), A1 low (part I, global and YM channels 123)
+            YM2612_A1_PORT &= ~bit(YM2612_A1_BIT); // A1 LOW
         }
         else {
-            YM_CTRL_PORT |= bit(YM_A1); // A1 high (part II, YM channels 456)
-            YM_CTRL_PORT &= ~bit(YM_A0); // A0 low (select register)
+            YM2612_A1_PORT |= bit(YM2612_A1_BIT); // A1 HIGH
         }
+        YM2612_A0_PORT &= ~bit(YM2612_A0_BIT); // A0 LOW (select register)
+        YM2612_CS_PORT &= ~bit(YM2612_CS_BIT); // CS LOW
         write(reg);
-        YM_CTRL_PORT |= bit(YM_A0);  // A0 high (write register)
+        YM2612_A0_PORT |= bit(YM2612_A0_BIT);  // A0 HIGH (write register)
         write(data);
+        YM2612_CS_PORT |= bit(YM2612_CS_BIT); // CS HIGH
+        interrupts();
     }
 
 
-    inline void setReg(part_e part, byte reg, byte data) {
+    void setReg(part_e part, byte reg, byte data) {
         state.flat[whichState(part, reg)] = data;
         setRegDirect(part, reg, data);
     }
 
 
-    inline byte getReg(part_e part, byte reg) {
+    byte getReg(part_e part, byte reg) {
         return state.flat[pgm_read_byte(&stateLookup[part][reg])];
     }
     
@@ -290,30 +324,38 @@ class YM2612 {
     public:
     void begin() {
         /* Pins setup */
-        YM_CTRL_DDR |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD) | bit(YM_A0) | bit(YM_A1);
-        YM_DATA_DDR |= B11111100;
-        YM_MCLOCK_DDR |= bit(YM_MCLOCK) | B00011000;
-        YM_CTRL_PORT |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD); /* IC, CS, WR and RD HIGH by default */
-        YM_CTRL_PORT &= ~(bit(YM_A0) | bit(YM_A1)); /* A0 and A1 LOW by default */
+        YM2612_IC_DDR |= bit(YM2612_IC_BIT);
+        YM2612_CS_DDR |= bit(YM2612_CS_BIT);
+        YM2612_WR_DDR |= bit(YM2612_WR_BIT);
+        YM2612_A0_DDR |= bit(YM2612_A0_BIT);
+        YM2612_A1_DDR |= bit(YM2612_A1_BIT);
 
-        /* F_CPU / 2 clock generation */
-        // OC1A is pin 9 on the Uno
-        TCCR1A = bit(COM1A0);            /* Toggle OCA1 on compare match */
-        TCCR1B = bit(WGM12) | bit(CS10); /* CTC mode with prescaler /1 */
-        TCCR1C = 0;                      /* Flag reset */
-        TCNT1 = 0;                       /* Counter reset */
-        /* if the comparison register is 0, then the condition is always 0 to the initial counter value 0 */
-        /* and the timer toggles the bit and never has a chance to increment */
-        OCR1A = 0;                       /* Divide base clock by two, by toggling OC1A every F_CPU clock */
+#ifdef YM2612_DATA_PORTB_MASK
+        DDRB |= YM2612_DATA_PORTB_MASK;
+#endif        
+#ifdef YM2612_DATA_PORTC_MASK
+        DDRC |= YM2612_DATA_PORTC_MASK;
+#endif
+#ifdef YM2612_DATA_PORTD_MASK
+        DDRD |= YM2612_DATA_PORTD_MASK;
+#endif
+
+/* IC, CS, WR and RD HIGH by default */
+        YM2612_IC_PORT |= bit(YM2612_IC_BIT);
+        YM2612_CS_PORT |= bit(YM2612_CS_BIT);
+        YM2612_WR_PORT |= bit(YM2612_WR_BIT);
+/* A0 and A1 LOW by default */
+        YM2612_A0_PORT &= bit(YM2612_A0_BIT);
+        YM2612_A1_PORT &= bit(YM2612_A1_BIT);
 
         /* Reset YM2612 */
-        YM_CTRL_PORT &= ~bit(YM_IC);
+        YM2612_IC_PORT &= ~bit(YM2612_IC_BIT);
         delay(10);
-        YM_CTRL_PORT |= bit(YM_IC);
+        YM2612_IC_PORT |= bit(YM2612_IC_BIT);
         delay(10);
 
         /* YM2612 Test code */
-        setReg(PART1, 0x22, 0x00); // LFO off
+        setGlobal22(Field::LFOEN, 0);
         /* make sure notes are off */
         setOperators(0, 0);
         setOperators(1, 0);
@@ -321,7 +363,8 @@ class YM2612 {
         setOperators(3, 0);
         setOperators(4, 0);
         setOperators(5, 0);
-        setReg(PART1, 0x27, 0x00); // timers, special mode off
+        setGlobal27(Field::T27H, 0);
+        setGlobal27(Field::T27L, 0);
         setReg(PART1, 0x2B, 0x00); // DAC off
         /* init voices */
         defaultVoice(CHAN1);
@@ -362,13 +405,13 @@ class YM2612 {
         else if (block > 7) {
             word f = (((uint32_t)(freq) << 9) / 15625);
             byte b; //octave where 10th bit overflows
-            //find the overflow octave
+            // find the octave above 7 which causes f's bit 10 to overflow
             for (b = 0; !(f & bit(10)); b++) {
                 f <<= 1; // multiply by 2 (octave)
             }
-            byte t = block - 7; //ideal octave above 7
+            byte t = block - 7; // ideal number of octaves above 7
             // if the overflow octave is smaller than ideal, use it instead
-            freq <<= (t < b ? t : b); // multiply by appropriate number of 2s
+            freq <<= (t < b ? t : b); // multiply by 2 the number of octaves
             block = 7; // maximum allowed YM block
         }
         // insert block field, adjust for factor of 72 and YM scaling:

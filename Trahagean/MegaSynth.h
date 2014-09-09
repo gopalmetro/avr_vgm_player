@@ -1,9 +1,72 @@
 #ifndef MEGASYNTH_H__
 #define MEGASYNTH_H__
 
+/*
+Arduino Uno Pin Map:
+
+/* 
+YM2612 pinout
+            ________
+GND --- GND|o       |0M ---- D3
+D4  ---- D0|        |Vcc --- 5V
+D5  ---- D1|        |A.Vcc - 5V
+D6  ---- D2|        |OUT L - To Mixer Circuit
+D7  ---- D3|        |Out R - To Mixer Circuit
+D10 ---- D4|        |A.GND - GND
+D11 ---- D5|        |A1 ---- A0
+D12 ---- D6|        |A0 ---- A1
+D13 ---- D7|        |RD ---- PULLUP (1K?)
+NC  ---- NC|        |WR ---- A2
+A5  ---- IC|        |CS ---- A4
+GND --- GND|________|IRQ --- NC
+
+
+SN76489AN pinout
+            ____
+D11 ---- D5|o   |Vcc --- 5V
+D12 ---- D6|    |D4 ---- D10
+D13 ---- D7|    |CLK --- D9
+PLDWN READY|    |D3 ---- D7
+ A2 ---- WE|    |D2 ---- D6
+ A3 ---- CE|    |D1 ---- D5
+  AUDIO OUT|    |D0 ---- D4
+ GND -- GND|____|NC
+
+*/
+
+
+/*
+*: exclusive use pin
+### PORT C ###
+C0/A0:    YM_A1
+C1/A1:    YM_A0
+C2/A2:    YM_WR | SN_WE
+C3/A3:  * SN_CE
+C4/A4:  * YM_CS
+C5/A5:    YM_IC
+### PORT D ###
+D0/D00: * MIDI_IN
+D1/D01: * SERIAL_OUT
+D2/D02:
+D3/D03: * YM_[phi]M
+D4/D04:   YM_D0 | SN_D0
+D5/D05:   YM_D1 | SN_D1
+D6/D06:   YM_D2 | SN_D2
+D7/D07:   YM_D3 | SN_D3
+### PORT B ###
+B0/D08:
+B1/D09: * SN_CLK
+B2/D10:   YM_D4 | SN_D4
+B3/D11:   YM_D5 | SN_D5
+B4/D12:   YM_D6 | SN_D6
+B5/D13:   YM_D7 | SN_D7 | LED_PIN
+
+NOTE: YM_RD needs a pullup.
+
+*/
+
 #include "YM2612.h"
 #include "midiPacketizer.h"
-
 
 class MegaSynth {
     public:
@@ -190,6 +253,8 @@ class MegaSynth {
             ym.frequency72(channel, keyToBlock(key), keyToFrequency72(key));
             if (channel <= 5) {
                 ym.level(channel, velocity);
+                //kill existing notes -- is this what we want?
+                ym.setOperators(channel, 0);
                 ym.setOperators(channel, bit(YM2612::SLOT1) | bit(YM2612::SLOT2) | bit(YM2612::SLOT3) | bit(YM2612::SLOT4)); //enable ALL the operators
             }            
 
