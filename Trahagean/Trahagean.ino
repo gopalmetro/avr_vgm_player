@@ -1,40 +1,30 @@
-/* YM2612 pinout
+/* 
+YM2612 pinout
             ________
 GND --- GND|o       |0M ---- D3
-D2  ---- D0|        |Vcc --- 5V
-D3  ---- D1|        |A.Vcc - 5V
-D4  ---- D2|        |OUT L - To Mixer Circuit
-D5  ---- D3|        |Out R - To Mixer Circuit
-D6  ---- D4|        |A.GND - GND
-D7  ---- D5|        |A1 ---- A0
+D4  ---- D0|        |Vcc --- 5V
+D5  ---- D1|        |A.Vcc - 5V
+D6  ---- D2|        |OUT L - To Mixer Circuit
+D7  ---- D3|        |Out R - To Mixer Circuit
+D10 ---- D4|        |A.GND - GND
+D11 ---- D5|        |A1 ---- A0
 D12 ---- D6|        |A0 ---- A1
-D11 ---- D7|        |RD ---- A2
-NC  ---- NC|        |WR ---- A3
+D13 ---- D7|        |RD ---- PULLUP (1K?)
+NC  ---- NC|        |WR ---- A2
 A5  ---- IC|        |CS ---- A4
-GND --- GND|________|IRQ --- 
+GND --- GND|________|IRQ --- NC
 
 
 SN76489AN pinout
-             ____
- AD4 ---- D5|o   |Vcc --- 5V
- AD3 ---- D6|    |D4 ---- AD5
- AD0 ---- D7|    |CLK --- AD9
- AA1 - READY|    |D3 ---- AD6
- AA3 ---- WE|    |D2 ---- AD7
- AA4 ---- CE|    |D1 ---- AD10
-   AUDIO OUT|    |D0 ---- AD11
- GND --- GND|____|AUDIO IN
-      
-sn76489 to Arduino        
-D0-7 TO D2-7 AND D10-11 (BIT SHIFTING SO THAT TX AND RX ARE FREE FOR MIDI ON THE ARDUINO)
-READY TO A1
-WE TO A3
-CE TO A4
-AUD OUT TO 1/4" AUDIO JACK 0R AMPLIFIER
-GND TO GND
-AUD IN DISCONNECTED (OR GROUNDED?)
-Vcc to +5
-CLK to D3
+            ____
+D11 ---- D5|o   |Vcc --- 5V
+D12 ---- D6|    |D4 ---- D10
+D13 ---- D7|    |CLK --- D9
+PLDWN READY|    |D3 ---- D7
+ A2 ---- WE|    |D2 ---- D6
+ A3 ---- CE|    |D1 ---- D5
+  AUDIO OUT|    |D0 ---- D4
+ GND -- GND|____|AUDIO IN
 
 */
 

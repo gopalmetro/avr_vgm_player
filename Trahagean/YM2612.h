@@ -7,21 +7,21 @@
 /* Pin map (Arduino UNO compatible) */
 #define YM_IC (5) // PC5 (= pin A5 for Arduino UNO)
 #define YM_CS (4) // PC4 (= pin A4 for Arduino UNO)
-#define YM_WR (3) // PC3 (= pin A3 for Arduino UNO)
-#define YM_RD (2) // PC2 (= pin A2 for Arduino UNO)
+#define YM_WR (2) // PC2 (= pin A2 for Arduino UNO)
+//#define YM_RD (2) // PC2 (= pin A2 for Arduino UNO) PULLUP!!!
 #define YM_A0 (1) // PC1 (= pin A1 for Arduino UNO)
 #define YM_A1 (0) // PC0 (= pin A0 for Arduino UNO)
 #define YM_CTRL_DDR DDRC
 #define YM_CTRL_PORT PORTC
 #define YM_DATA_DDR DDRD
 #define YM_DATA_PORT PORTD // Whole PORT D for data bus (= pins D0 to D7 for Arduino UNO)
-#define YM_MCLOCK (1) // PB1 = OC1A (= pin D9 for Arduino UNO)
-#define YM_MCLOCK_DDR DDRB
+//#define YM_MCLOCK (1) // PB1 = OC1A (= pin D9 for Arduino UNO) CLOCK INFO IS IN TRAHAGEAN
+//#define YM_MCLOCK_DDR DDRB
 
 //PD0 & PD1 for serial i/o, using PD2-PD7 as YM 0-5
-#define DDATA(d) ((d << 2) & B11111100)
+#define DDATA(d) ((d << 4) & B11110000)
 // PB2 PB3 as YM 6-7
-#define BDATA(d) ((d >> 3) & B00011000)
+#define BDATA(d) ((d << 2) & B00111100)
 
 
 class YM2612 {
@@ -227,8 +227,8 @@ class YM2612 {
     private:
     static inline void write(byte data) {
         YM_CTRL_PORT &= ~bit(YM_CS); // CS LOW
-        YM_DATA_PORT = DDATA(data) | (YM_DATA_PORT & B00000011);
-        PORTB = BDATA(data) | (PORTB & B11100111);
+        YM_DATA_PORT = DDATA(data) | (YM_DATA_PORT & B00001111);
+        PORTB = BDATA(data) | (PORTB & B11000011);
         delayMicroseconds(1);
         YM_CTRL_PORT &= ~bit(YM_WR); // Write data
         delayMicroseconds(5);
@@ -291,20 +291,21 @@ class YM2612 {
     void begin() {
         /* Pins setup */
         YM_CTRL_DDR |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD) | bit(YM_A0) | bit(YM_A1);
-        YM_DATA_DDR |= B11111100;
-        YM_MCLOCK_DDR |= bit(YM_MCLOCK) | B00011000;
+        YM_DATA_DDR |= B11110000;
+        //YM_MCLOCK_DDR |= bit(YM_MCLOCK) | B00011000;
+        DDRB |= B00111100;
         YM_CTRL_PORT |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD); /* IC, CS, WR and RD HIGH by default */
         YM_CTRL_PORT &= ~(bit(YM_A0) | bit(YM_A1)); /* A0 and A1 LOW by default */
 
-        /* F_CPU / 2 clock generation */
-        // OC1A is pin 9 on the Uno
-        TCCR1A = bit(COM1A0);            /* Toggle OCA1 on compare match */
-        TCCR1B = bit(WGM12) | bit(CS10); /* CTC mode with prescaler /1 */
-        TCCR1C = 0;                      /* Flag reset */
-        TCNT1 = 0;                       /* Counter reset */
-        /* if the comparison register is 0, then the condition is always 0 to the initial counter value 0 */
-        /* and the timer toggles the bit and never has a chance to increment */
-        OCR1A = 0;                       /* Divide base clock by two, by toggling OC1A every F_CPU clock */
+//        /* F_CPU / 2 clock generation */
+//        // OC1A is pin 9 on the Uno
+//        TCCR1A = bit(COM1A0);            /* Toggle OCA1 on compare match */
+//        TCCR1B = bit(WGM12) | bit(CS10); /* CTC mode with prescaler /1 */
+//        TCCR1C = 0;                      /* Flag reset */
+//        TCNT1 = 0;                       /* Counter reset */
+//        /* if the comparison register is 0, then the condition is always 0 to the initial counter value 0 */
+//        /* and the timer toggles the bit and never has a chance to increment */
+//        OCR1A = 0;                       /* Divide base clock by two, by toggling OC1A every F_CPU clock */
 
         /* Reset YM2612 */
         YM_CTRL_PORT &= ~bit(YM_IC);
