@@ -1,24 +1,49 @@
 /* YM2612 pinout
             ________
-GND --- GND|o       |0M ---- 
-D2  ---- D0|        |Vcc --- 
-D3  ---- D1|        |A.Vcc - 
-D4  ---- D2|        |OUT L - 
-D5  ---- D3|        |Out R - 
+GND --- GND|o       |0M ---- D3
+D2  ---- D0|        |Vcc --- 5V
+D3  ---- D1|        |A.Vcc - 5V
+D4  ---- D2|        |OUT L - To Mixer Circuit
+D5  ---- D3|        |Out R - To Mixer Circuit
 D6  ---- D4|        |A.GND - GND
 D7  ---- D5|        |A1 ---- A0
 D12 ---- D6|        |A0 ---- A1
 D11 ---- D7|        |RD ---- A2
 NC  ---- NC|        |WR ---- A3
 A5  ---- IC|        |CS ---- A4
-GND --- GND|________|IRQ
+GND --- GND|________|IRQ --- 
+
+
+SN76489AN pinout
+             ____
+ AD4 ---- D5|o   |Vcc --- 5V
+ AD3 ---- D6|    |D4 ---- AD5
+ AD0 ---- D7|    |CLK --- AD9
+ AA1 - READY|    |D3 ---- AD6
+ AA3 ---- WE|    |D2 ---- AD7
+ AA4 ---- CE|    |D1 ---- AD10
+   AUDIO OUT|    |D0 ---- AD11
+ GND --- GND|____|AUDIO IN
+      
+sn76489 to Arduino        
+D0-7 TO D2-7 AND D10-11 (BIT SHIFTING SO THAT TX AND RX ARE FREE FOR MIDI ON THE ARDUINO)
+READY TO A1
+WE TO A3
+CE TO A4
+AUD OUT TO 1/4" AUDIO JACK 0R AMPLIFIER
+GND TO GND
+AUD IN DISCONNECTED (OR GROUNDED?)
+Vcc to +5
+CLK to D3
 
 */
+
 
 
 /* Dependencies */
 #include <avr/sleep.h>
 #include "Arduino.h"
+#include "toggle.h"
 
 // flag for MegaSynth to dump freqs for verification purposes
 //#define DUMP_FREQS
@@ -90,12 +115,22 @@ void blinkTest(byte numBlinks = 1, word LEDHighTime = 50, word LEDLowTime = 50) 
 void setup() {
     /* activate MIDI Serial input - Gopal */
     Serial.begin(BAUDRATE);
+        
+    //SN Clock on Uno's D9
+    toggle_OC1A(4000000.0); // 4MHz
+    pinMode(9, OUTPUT);
+
+    //YM Clock on Uno's D3
+    toggle_OC2B(8000000.0); // 8MHz
+    pinMode(3, OUTPUT);
+    
     synth.begin();
     delay(200);
     blinkTest(3,200,200);
     //blinkTest(3,400,200);
     //blinkTest(3,200,200);
     set_sleep_mode(SLEEP_MODE_IDLE);
+
 }
 
 
