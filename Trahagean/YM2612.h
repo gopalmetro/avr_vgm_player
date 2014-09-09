@@ -290,11 +290,13 @@ class YM2612 {
     public:
     void begin() {
         /* Pins setup */
-        YM_CTRL_DDR |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD) | bit(YM_A0) | bit(YM_A1);
+//      YM_CTRL_DDR |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD) | bit(YM_A0) | bit(YM_A1);
+        YM_CTRL_DDR |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_A0) | bit(YM_A1);
         YM_DATA_DDR |= B11110000;
         //YM_MCLOCK_DDR |= bit(YM_MCLOCK) | B00011000;
-        DDRB |= B00111100;
-        YM_CTRL_PORT |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD); /* IC, CS, WR and RD HIGH by default */
+        DDRB |= B00111100; 
+//      YM_CTRL_PORT |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR) | bit(YM_RD); /* IC, CS, WR and RD HIGH by default */\
+        YM_CTRL_PORT |= bit(YM_IC) | bit(YM_CS) | bit(YM_WR); /* IC, CS, WR and RD HIGH by default */
         YM_CTRL_PORT &= ~(bit(YM_A0) | bit(YM_A1)); /* A0 and A1 LOW by default */
 
 //        /* F_CPU / 2 clock generation */
