@@ -10,8 +10,8 @@
 #include "MegaSynth.h"
 
 //#define USE_QD_PACKETIZER
-#define BAUDRATE MIDI_NATIVE_BAUDRATE
-//#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
+//#define BAUDRATE MIDI_NATIVE_BAUDRATE
+#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
 
 
 //rate for MIDI bridge software (for historical reasons this number is a multiple of 300)
