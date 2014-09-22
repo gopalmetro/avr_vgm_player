@@ -280,6 +280,7 @@ void loop_() {
 void loop() {
 	/* Program loop */
 	/* SN76489 Test code with synth calls thrown in for good measure. */    
+///*    
     delay(1000);
     synth.noteOn(0, 31, 127);
     setreg(0x01, ATTENUATION_8DB);
@@ -294,11 +295,14 @@ void loop() {
     synth.noteOn(0, 35, 127);
     setreg(0x05, ATTENUATION_8DB);
     delay(1000);
+    synth.noteOff(0);
     setreg(0x05, ATTENUATION_OFF);
     delay(1000);
     setreg(0x07, ATTENUATION_2DB);
     delay(1000);
     setreg(0x07, ATTENUATION_OFF);
+//*/
+    
 }
 
 
