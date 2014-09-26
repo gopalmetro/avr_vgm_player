@@ -3,6 +3,7 @@
 
 #include "Arduino.h"
 #include "YM2612_addr.h"
+#include <util/delay.h>
 
 
 /* Pin map (Arduino UNO compatible) */
@@ -260,11 +261,11 @@ class YM2612 {
 #ifdef YM2612_DATA_PORTD_MASK
         PORTD = (PORTD & ~(YM2612_DATA_PORTD_MASK)) | (YM2612_DATA_PORTD_BITBANG(data) & YM2612_DATA_PORTD_MASK);
 #endif
-        delayMicroseconds(1);
+        _delay_us(1);
         YM2612_WR_PORT &= ~bit(YM2612_WR_BIT);
-        delayMicroseconds(5);
+        _delay_us(5);
         YM2612_WR_PORT |= bit(YM2612_WR_BIT);
-        delayMicroseconds(5);
+        _delay_us(5);
     }
 
 
@@ -350,9 +351,9 @@ class YM2612 {
 
         /* Reset YM2612 */
         YM2612_IC_PORT &= ~bit(YM2612_IC_BIT);
-        delay(10);
+        _delay_ms(10);
         YM2612_IC_PORT |= bit(YM2612_IC_BIT);
-        delay(10);
+        _delay_ms(10);
 
         /* YM2612 Test code */
         setGlobal22(Field::LFOEN, 0);
@@ -395,9 +396,11 @@ class YM2612 {
 
 
     void frequency72(byte channel, int8_t block, word freq) {
-	    byte lsbReg =  channel <= 5 ? 0xA0 : 0xAC; //if higher than 5 then use the special mode registers
-	    byte chanOffset = channel % 3; //channels are in sequence, and 012 overlap 345
-	    byte part = (3 <= channel && channel <= 5); // part is 0 unless channel is 3 4 5
+	    byte lsbReg = channel <= 5 ? 0xA0 : 0xAC; //if higher than 5 then use the special mode registers
+        if (10 <= channel && channel <= 12) // if channel is special mode
+            channel -= 10; // set channel to 0,1,2
+	    byte chanOffset = channel % 3; //MIDI channels are in YM sequence, and 0,1,2 overlap 3,4,5
+	    byte part = (3 <= channel && channel <= 5); // part is 0 unless channel is 3,4,5
         if (block < 0) { // for octaves lower than block 0
             freq >>= -block; //divide by 2 the number of octaves below 0
             block = 0; // minimum allowed YM block
@@ -410,7 +413,7 @@ class YM2612 {
                 f <<= 1; // multiply by 2 (octave)
             }
             byte t = block - 7; // ideal number of octaves above 7
-            // if the overflow octave is smaller than ideal, use it instead
+            // if the overflow octave (b) is smaller than ideal (t), use it instead
             freq <<= (t < b ? t : b); // multiply by 2 the number of octaves
             block = 7; // maximum allowed YM block
         }

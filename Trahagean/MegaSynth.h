@@ -2,10 +2,8 @@
 #define MEGASYNTH_H__
 
 /*
-Arduino Uno Pin Map:
 
-/* 
-YM2612 pinout
+YM2612 pin-out
             ________
 GND --- GND|o       |0M ---- D3
 D4  ---- D0|        |Vcc --- 5V
@@ -21,7 +19,7 @@ A5  ---- IC|        |CS ---- A4
 GND --- GND|________|IRQ --- NC
 
 
-SN76489AN pinout
+SN76489AN pin-out
             ____
 D11 ---- D5|o   |Vcc --- 5V
 D12 ---- D6|    |D4 ---- D10
@@ -36,6 +34,8 @@ PLDWN READY|    |D3 ---- D7
 
 
 /*
+Arduino pins:
+(port)#/(analog/digital)##
 *: exclusive use pin
 ### PORT C ###
 C0/A0:    YM_A1
@@ -61,11 +61,12 @@ B3/D11:   YM_D5 | SN_D5
 B4/D12:   YM_D6 | SN_D6
 B5/D13:   YM_D7 | SN_D7 | LED_PIN
 
-NOTE: YM_RD needs a pullup.
+NOTE: YM_RD needs a pull-up.
 
 */
 
 #include "YM2612.h"
+#include "SN76489.h"
 #include "midiPacketizer.h"
 
 class MegaSynth {
@@ -92,17 +93,41 @@ class MegaSynth {
     };
     private:
     YM2612 ym;
+    SN76489 sn;
     static const PROGMEM word noteFreq72[NOTE_COUNT];
 
     static inline int8_t keyToBlock(byte key) {
         // obtain octave by applying / NOTE_COUNT to key
         // then apply the offset (-1)
-        return key / NOTE_COUNT -1;
+        return key / NOTE_COUNT - 1;
     }
+    
+    
     static inline word keyToFrequency72(byte key) {
         //look up the freq72 for the key, disregarding octave by
         // applying % NOTE_COUNT
         return pgm_read_word(&noteFreq72[key % NOTE_COUNT]);
+    }
+    
+    
+    static inline word keyToPeriod125k(byte key) {
+        //look up the freq72 for the key, disregarding octave by
+        // applying % NOTE_COUNT
+        word freq72 = pgm_read_word(&noteFreq72[key % NOTE_COUNT]);
+        int8_t octave = key / NOTE_COUNT - 5;
+        // noteFreq72 starts at key 60 or octave 5, corrections follow:
+        // multiply by 2 for each octave above 5
+        // divide by 2 for each octave below 5
+        // finally, add half of freq72 to numerator to reduce roundoff errors
+        // 125000 is based on 4MHz clock
+        long period = ((
+                (octave < 0) ? ((125000 * 72) << -octave)
+                : (octave > 0) ? ((125000 * 72) >> octave)
+                : (125000 * 72)
+            ) + (freq72 >> 1)) / freq72;
+        while (period > 1023) // period does not fit in 10bits
+            period >>= 1; // halve period until it does
+        return period;
     }
 
 
@@ -228,24 +253,14 @@ class MegaSynth {
         }
         return 1; //handled CC        
     }
+
     public:
     void begin() {
         pinMode(LED_BUILTIN, OUTPUT);
         digitalWrite(LED_BUILTIN, LOW);
         
         ym.begin();
-#ifdef DUMP_FREQS
-        for (byte k = 0; k < 128; k++) {
-            Serial.print(k);
-            Serial.print(", ");
-            //this is exactly the same logic in YM2612::frequency72()
-            //(octaves outside of blocks 0-7 are handled specially)
-            Serial.println(
-                (keyToBlock(k) << 11)
-                    | (((uint32_t)(keyToFrequency72(k)) << 9) / 15625),
-                HEX);
-        }
-#endif
+        sn.begin();
     }
 
     void noteOn(byte channel, byte key, byte velocity) {
@@ -257,14 +272,56 @@ class MegaSynth {
                 ym.setOperators(channel, 0);
                 ym.setOperators(channel, bit(YM2612::SLOT1) | bit(YM2612::SLOT2) | bit(YM2612::SLOT3) | bit(YM2612::SLOT4)); //enable ALL the operators
             }            
-
+        } else if (6 <= channel && channel <= 9) {
+            if (channel == 9) {
+                key %= NOTE_COUNT;
+                enum SN76489::feedback_e fb;
+                enum SN76489::rate_e shift;
+                if (key == NOTE_C
+                    || key == NOTE_Cs
+                    || key == NOTE_D
+                    || key == NOTE_Ds
+                    || key == NOTE_E
+                    || key == NOTE_A
+                    || key == NOTE_As) {
+                    fb = SN76489::PERIODIC_NOISE;
+                }
+                else {
+                    fb = SN76489::WHITE_NOISE;
+                }
+                if (key == NOTE_C
+                    || key == NOTE_Cs
+                    || key == NOTE_F) {
+                    shift = SN76489::SHIFT_512;
+                }
+                else if (key == NOTE_D
+                    || key == NOTE_Ds
+                    || key == NOTE_Fs) {
+                    shift = SN76489::SHIFT_1024;
+                }
+                else if (key == NOTE_E
+                    || key == NOTE_G
+                    || key == NOTE_Gs) {
+                    shift = SN76489::SHIFT_2048;
+                }
+                else {
+                    shift = SN76489::SHIFT_CHAN3;
+                }
+                sn.setNoise(fb, shift);
+            } else {                
+                sn.setPeriod125k(static_cast<SN76489::channel_e>(channel - 6), keyToPeriod125k(key));
+            }                
+            sn.level(static_cast<SN76489::channel_e>(channel - 6), velocity);
         }
     }
 
 
     void noteOff(byte channel) {
-        if (channel <= 5)
+        if (channel <= 5) {
             ym.setOperators(channel, 0); //disable ALL the operators
+        } else if (6 <= channel && channel <= 9) {
+            sn.level(static_cast<SN76489::channel_e>(channel - 6), 0);
+        }
     }
     
     
@@ -275,12 +332,7 @@ class MegaSynth {
         }
         if (!done) {
             done = doYmCc(channel, ccnum, ccval);
-        }        
-/*
-        if (!done) {
-            done = doSnCc(channel, ccnum, ccval);
         }
-*/
     }
 
 
