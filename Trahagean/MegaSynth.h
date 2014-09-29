@@ -28,7 +28,7 @@ PLDWN READY|    |D3 ---- D7
  A2 ---- WE|    |D2 ---- D6
  A3 ---- CE|    |D1 ---- D5
   AUDIO OUT|    |D0 ---- D4
- GND -- GND|____|NC
+ GND -- GND|____|NC (INPUT)
 
 */
 
