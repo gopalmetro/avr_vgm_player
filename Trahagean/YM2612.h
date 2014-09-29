@@ -6,7 +6,8 @@
 #include <util/delay.h>
 
 
-/* Pin map (Arduino UNO compatible) */
+extern void dataBusWrite(byte data);
+
 /*PORTC corresponds to analog pins on the Uno */
 #define YM2612_IC_PORT PORTC
 #define YM2612_IC_DDR  DDRC 
@@ -24,31 +25,6 @@
 #define YM2612_A1_DDR  DDRC
 #define YM2612_A1_BIT  PORTC0
 // RD pin needs pullup. It isn't used.
-
-//Pin map for data pins is a bit complicated:
-//YM2612_D0 through YM2612_D3 map to PORTD pins 4-7 -- Uno digital pins 4-7
-//YM2612_D4 through YM2612_D7 map to PORTB pins 2-5 -- Uno digital pins 10-13
-#define YM2612_DATA_PORTD_MASK B11110000
-#define YM2612_DATA_PORTD_BITBANG(b) ((b) << 4)
-
-#define YM2612_DATA_PORTB_MASK B00111100
-#define YM2612_DATA_PORTB_BITBANG(b) ((b) >> 2)
-
-
-#if !defined(YM2612_DATA_PORTB_MASK) \
-    && !defined(YM2612_DATA_PORTC_MASK) \
-    && !defined(YM2612_DATA_PORTD_MASK)
-#error "define at least one YM2612_DATA_PORT[BCD]_MASK"
-#endif
-#if (defined(YM2612_DATA_PORTB_MASK) && !defined(YM2612_DATA_PORTB_BITBANG))
-#error "YM2612_DATA_PORTB_MASK defined without YM2612_DATA_PORTB_BITBANG(b)"
-#endif
-#if (defined(YM2612_DATA_PORTC_MASK) && !defined(YM2612_DATA_PORTC_BITBANG))
-#error "YM2612_DATA_PORTC_MASK defined without YM2612_DATA_PORTC_BITBANG(b)"
-#endif
-#if (defined(YM2612_DATA_PORTD_MASK) && !defined(YM2612_DATA_PORTD_BITBANG))
-#error "YM2612_DATA_PORTD_MASK defined without YM2612_DATA_PORTD_BITBANG(b)"
-#endif
 
 class YM2612 {
     public:
@@ -252,15 +228,7 @@ class YM2612 {
 
     private:
     static inline void write(byte data) {
-#ifdef YM2612_DATA_PORTB_MASK
-        PORTB = (PORTB & ~(YM2612_DATA_PORTB_MASK)) | (YM2612_DATA_PORTB_BITBANG(data) & YM2612_DATA_PORTB_MASK);
-#endif        
-#ifdef YM2612_DATA_PORTC_MASK
-        PORTC = (PORTC & ~(YM2612_DATA_PORTC_MASK)) | (YM2612_DATA_PORTC_BITBANG(data) & YM2612_DATA_PORTC_MASK);
-#endif
-#ifdef YM2612_DATA_PORTD_MASK
-        PORTD = (PORTD & ~(YM2612_DATA_PORTD_MASK)) | (YM2612_DATA_PORTD_BITBANG(data) & YM2612_DATA_PORTD_MASK);
-#endif
+        dataBusWrite(data);
         _delay_us(1);
         YM2612_WR_PORT &= ~bit(YM2612_WR_BIT);
         _delay_us(5);
@@ -330,15 +298,6 @@ class YM2612 {
         YM2612_WR_DDR |= bit(YM2612_WR_BIT);
         YM2612_A0_DDR |= bit(YM2612_A0_BIT);
         YM2612_A1_DDR |= bit(YM2612_A1_BIT);
-#ifdef YM2612_DATA_PORTB_MASK
-        DDRB |= YM2612_DATA_PORTB_MASK;
-#endif        
-#ifdef YM2612_DATA_PORTC_MASK
-        DDRC |= YM2612_DATA_PORTC_MASK;
-#endif
-#ifdef YM2612_DATA_PORTD_MASK
-        DDRD |= YM2612_DATA_PORTD_MASK;
-#endif
         /* IC, CS, WR and RD HIGH by default */
         YM2612_IC_PORT |= bit(YM2612_IC_BIT);
         YM2612_CS_PORT |= bit(YM2612_CS_BIT);

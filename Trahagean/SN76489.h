@@ -4,40 +4,15 @@
 #include "Arduino.h"
 #include <util/delay.h>
 
-/* Pin map (Arduino UNO compatible) */
+extern void dataBusWrite(byte data);
 
+/*PORTC corresponds to analog pins on the Uno */
 #define SN76489_CE_PORT PORTC
 #define SN76489_CE_DDR  DDRC
 #define SN76489_CE_BIT  3
 #define SN76489_WE_PORT PORTC
 #define SN76489_WE_DDR  DDRC
 #define SN76489_WE_BIT  2
-
-//Pin map for data pins splits nibbles across two ports:
-//SN76489_D0 through SN76489_D3 map to PORTD pins 4-7 -- Uno digital pins 4-7
-//SN76489_D4 through SN76489_D7 map to PORTB pins 2-5 -- Uno digital pins 10-13
-
-#define SN76489_DATA_PORTD_MASK B11110000
-#define SN76489_DATA_PORTD_BITBANG(b) ((b) << 4)
-
-#define SN76489_DATA_PORTB_MASK B00111100
-#define SN76489_DATA_PORTB_BITBANG(b) ((b) >> 2)
-
-// Complain if no DATA masks are defined and if there's no BITBANG for a mask
-#if !defined(SN76489_DATA_PORTB_MASK)
-    && !defined(SN76489_DATA_PORTC_MASK)
-    && !defined(SN76489_DATA_PORTD_MASK)
-#error "define at least one SN76489_DATA_PORT[BCD]_MASK"
-#endif
-#if defined(SN76489_DATA_PORTB_MASK) && !defined(SN76489_DATA_PORTB_BITBANG)
-#error "SN76489_DATA_PORTB_MASK defined without SN76489_DATA_PORTB_BITBANG(b)"
-#endif
-#if defined(SN76489_DATA_PORTC_MASK) && !defined(SN76489_DATA_PORTC_BITBANG)
-#error "SN76489_DATA_PORTC_MASK defined without SN76489_DATA_PORTC_BITBANG(b)"
-#endif
-#if defined(SN76489_DATA_PORTD_MASK) && !defined(SN76489_DATA_PORTD_BITBANG)
-#error "SN76489_DATA_PORTD_MASK defined without SN76489_DATA_PORTD_BITBANG(b)"
-#endif
 
 class SN76489 {
     public:
@@ -60,18 +35,7 @@ class SN76489 {
 
     private:
     inline static void write(byte data) {
-    #ifdef SN76489_DATA_PORTB_MASK
-        PORTB = (PORTB & ~(SN76489_DATA_PORTB_MASK))
-            | (SN76489_DATA_PORTB_BITBANG(data) & SN76489_DATA_PORTB_MASK);
-    #endif
-    #ifdef SN76489_DATA_PORTC_MASK
-        PORTC = (PORTC & ~(SN76489_DATA_PORTC_MASK))
-            | (SN76489_DATA_PORTC_BITBANG(data) & SN76489_DATA_PORTC_MASK);
-    #endif
-    #ifdef SN76489_DATA_PORTD_MASK
-        PORTD = (PORTD & ~(SN76489_DATA_PORTD_MASK))
-            | (SN76489_DATA_PORTD_BITBANG(data) & SN76489_DATA_PORTD_MASK);
-    #endif
+        dataBusWrite(data);
 	    SN76489_WE_PORT &= ~bit(SN76489_WE_BIT); // WE LOW (latch)
 	    SN76489_CE_PORT &= ~bit(SN76489_CE_BIT); // CS LOW
 	    _delay_us(150);
@@ -112,15 +76,6 @@ class SN76489 {
 	    SN76489_WE_DDR |= bit(SN76489_WE_BIT);
 	    SN76489_CE_DDR |= bit(SN76489_CE_BIT);
 
-#ifdef SN76489_DATA_PORTB_MASK
-	    DDRB |= SN76489_DATA_PORTB_MASK;
-#endif
-#ifdef SN76489_DATA_PORTC_MASK
-	    DDRC |= SN76489_DATA_PORTC_MASK;
-#endif
-#ifdef SN76489_DATA_PORTD_MASK
-	    DDRD |= SN76489_DATA_PORTD_MASK;
-#endif
 	    SN76489_WE_PORT |= bit(SN76489_WE_BIT); // HIGH by default
 	    SN76489_CE_PORT |= bit(SN76489_CE_BIT); // HIGH by default
 
