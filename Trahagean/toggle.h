@@ -46,7 +46,7 @@ inline void toggle_OC0A(double f) {
 inline void toggle_OC0B(double f) {
     TCCR0A = bit(COM0B0) | bit(WGM01);
     TCCR0B = bit(CS00);
-    OCR0B = F_CPU / (f * 2) - 1;
+    OCR0A = F_CPU / (f * 2) - 1;
 }
 
 
@@ -61,7 +61,7 @@ inline void toggle_OC1A(double f) {
 inline void toggle_OC1B(double f) {
     TCCR1A = bit(COM1B0);
     TCCR1B = bit(WGM12) | bit(CS10);
-    OCR1B = F_CPU / (f * 2) - 1;
+    OCR1A = F_CPU / (f * 2) - 1;
 }
 
 
@@ -76,7 +76,7 @@ inline void toggle_OC2A(double f) {
 inline void toggle_OC2B(double f) {
     TCCR2A = bit(COM2B0) | bit(WGM21);
     TCCR2B = bit(CS20);
-    OCR2B = F_CPU / (f * 2) - 1;
+    OCR2A = F_CPU / (f * 2) - 1;
 }
 
 // include guard
