@@ -112,15 +112,15 @@ class SN76489 {
 	    SN76489_WE_DDR |= bit(SN76489_WE_BIT);
 	    SN76489_CE_DDR |= bit(SN76489_CE_BIT);
 
-	    #ifdef SN76489_DATA_PORTB_MASK
+#ifdef SN76489_DATA_PORTB_MASK
 	    DDRB |= SN76489_DATA_PORTB_MASK;
-	    #endif
-	    #ifdef SN76489_DATA_PORTC_MASK
+#endif
+#ifdef SN76489_DATA_PORTC_MASK
 	    DDRC |= SN76489_DATA_PORTC_MASK;
-	    #endif
-	    #ifdef SN76489_DATA_PORTD_MASK
+#endif
+#ifdef SN76489_DATA_PORTD_MASK
 	    DDRD |= SN76489_DATA_PORTD_MASK;
-	    #endif
+#endif
 	    SN76489_WE_PORT |= bit(SN76489_WE_BIT); // HIGH by default
 	    SN76489_CE_PORT |= bit(SN76489_CE_BIT); // HIGH by default
 
