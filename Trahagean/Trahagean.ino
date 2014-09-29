@@ -1,6 +1,7 @@
 /* Dependencies */
 #include "Arduino.h"
 #include "toggle.h"
+#include <avr/delay.h>
 
 // flag for MegaSynth to dump freqs for verification purposes
 //#define DUMP_FREQS
@@ -98,9 +99,13 @@ MidiPacketizer packetizer;
 void blinkTest(byte numBlinks = 1, word LEDHighTime = 50, word LEDLowTime = 50) {
 	for (int i = 0; i < numBlinks; i++) {
 		digitalWrite(LED_BUILTIN, HIGH);
-		delay(LEDHighTime);
+        for (word i = LEDHighTime; i > 0; i--) {
+            _delay_ms(1);
+        }        
 		digitalWrite(LED_BUILTIN, LOW);
-		delay(LEDLowTime);
+        for (word i = LEDLowTime; i > 0; i--) {
+            _delay_ms(1);
+        }
 	}
 }
 
@@ -129,7 +134,7 @@ void setup() {
 
     
     synth.begin();
-    delay(200);
+    _delay_ms(200);
     blinkTest(3,200,200);
     //blinkTest(3,400,200);
     //blinkTest(3,200,200);
