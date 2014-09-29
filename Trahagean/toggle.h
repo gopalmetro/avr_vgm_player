@@ -1,27 +1,31 @@
+/************************************************************************/
+/* toggle.h - generate clock signals                                    */
+/************************************************************************/
+
 #ifndef TOGGLE_H_
 #define TOGGLE_H_
+
 #include "Arduino.h"
 
-/* Clock generation
+/* Clock generation - targeting ATMega328p or similar AVR
     Warning 1: Only use one of the A or B pins on a given timer.
-               If both are attempted, then only the last one remains active.
+               If both are attempted, then only the latter one remains active.
     Warning 2: Arduino delay, millis, and micros depend on timer 0
-    Warning 3: Arduino tone() uses timer
+    Warning 3: Arduino servo library depends on timer 1
+    Warning 4: Arduino tone depends on timer 2
     
-    The timers 0 and 2 will produce clocks within these bounds:
+    The timers will produce clocks within the following traits:
     Resolution of 2 / F_CPU (125ns on Uno)
-    Minimum clock: Timer 0 & 2, clock of F_CPU / 512 (31250Hz on Uno)
-                   Timer 1, clock of F_CPU / 131072 (about 123Hz on Uno)
+    Timer 0 & 2, minimum clock of F_CPU / 512 (31250Hz on Uno)
+    Timer 1, minimum clock of F_CPU / 131072 (about 123Hz on Uno)
     Maximum clock of F_CPU / 2
     
-    Toggling on compare match is like having a automatic /2 prescaler
-    The formula for output clock is: F_CPU / (OCR + 1) / 2
-   
-    Each macro sets:
-       CTC mode (matching on relevant OCR)
-       Appropriate OCR pin to toggle mode
-       Prescaler to /1
-       OCR value to the one supplied
+    Each function sets:
+        CTC mode
+        One OC pin to toggle mode
+        Prescaler to /1
+        OCR value to the indicated frequency, 'f',
+            rounded up to the nearest 125ns increment.
        
     Timer pin map for the Arduino Uno
         |Arduino|
