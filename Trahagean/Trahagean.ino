@@ -23,12 +23,12 @@
 MegaSynth synth;
 
 //Pin map for data pins is a bit complicated:
-//DATA_BUS_D0 through DATA_BUS_D3 map to PORTD pins 4-7 -- Uno digital pins 4-7
-//DATA_BUS_D4 through DATA_BUS_D7 map to PORTB pins 2-5 -- Uno digital pins 10-13
-#define DATA_BUS_PORTD_MASK B11110000
-#define DATA_BUS_PORTD_BITBANG(b) ((b) << 4)
+//DATA_BUS_D0 through DATA_BUS_D1 map to PORTD pins 6-7 -- Uno digital pins 6-7
+//DATA_BUS_D2 through DATA_BUS_D7 map to PORTB pins 0-5 -- Uno digital pins 8-13
+#define DATA_BUS_PORTD_MASK B11000000
+#define DATA_BUS_PORTD_BITBANG(b) ((b) << 6)
 
-#define DATA_BUS_PORTB_MASK B00111100
+#define DATA_BUS_PORTB_MASK B00111111
 #define DATA_BUS_PORTB_BITBANG(b) ((b) >> 2)
 
 
@@ -114,9 +114,9 @@ void setup() {
     /* activate MIDI Serial input - Gopal */
     Serial.begin(BAUDRATE);
         
-    //SN Clock on Uno's D9
-    toggle_OC1A(4000000.0); // 4MHz
-    pinMode(9, OUTPUT);
+    //SN Clock on Uno's D5
+    toggle_OC0B(4000000.0); // 4MHz
+    pinMode(5, OUTPUT);
 
     //YM Clock on Uno's D3
     toggle_OC2B(8000000.0); // 8MHz
@@ -132,6 +132,7 @@ void setup() {
     DDRD |= DATA_BUS_PORTD_MASK;
 #endif
 
+    pinMode(LED_BUILTIN, OUTPUT);
     
     synth.begin();
     _delay_ms(200);
