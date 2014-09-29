@@ -9,54 +9,24 @@
 #include "MegaSynth.h"
 
 //#define USE_QD_PACKETIZER
-//#define BAUDRATE MIDI_NATIVE_BAUDRATE
-#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
+#define BAUDRATE MIDI_NATIVE_BAUDRATE
+//#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
 
+#define SHIFT_LATCH_PIN 8
+#define SHIFT_DATA_PIN 11
+#define SHIFT_CLOCK_PIN 12
 
 //rate for MIDI bridge software (for historical reasons this number is a multiple of 300)
 #define MIDI_SOFTWARE_BAUDRATE 38400
 //standard MIDI rate (1MHz/32, easier for embedded systems)
 #define MIDI_NATIVE_BAUDRATE 31250
 
-
 MegaSynth synth;
 
-//Pin map for data pins is a bit complicated:
-//DATA_BUS_D0 through DATA_BUS_D3 map to PORTD pins 4-7 -- Uno digital pins 4-7
-//DATA_BUS_D4 through DATA_BUS_D7 map to PORTB pins 2-5 -- Uno digital pins 10-13
-#define DATA_BUS_PORTD_MASK B11110000
-#define DATA_BUS_PORTD_BITBANG(b) ((b) << 4)
-
-#define DATA_BUS_PORTB_MASK B00111100
-#define DATA_BUS_PORTB_BITBANG(b) ((b) >> 2)
-
-
-#if !defined(DATA_BUS_PORTB_MASK) \
-    && !defined(DATA_BUS_PORTC_MASK) \
-    && !defined(DATA_BUS_PORTD_MASK)
-#error "define at least one DATA_BUS_PORT[BCD]_MASK"
-#endif
-#if (defined(DATA_BUS_PORTB_MASK) && !defined(DATA_BUS_PORTB_BITBANG))
-#error "DATA_BUS_PORTB_MASK defined without DATA_BUS_PORTB_BITBANG(b)"
-#endif
-#if (defined(DATA_BUS_PORTC_MASK) && !defined(DATA_BUS_PORTC_BITBANG))
-#error "DATA_BUS_PORTC_MASK defined without DATA_BUS_PORTC_BITBANG(b)"
-#endif
-#if (defined(DATA_BUS_PORTD_MASK) && !defined(DATA_BUS_PORTD_BITBANG))
-#error "DATA_BUS_PORTD_MASK defined without DATA_BUS_PORTD_BITBANG(b)"
-#endif
-
 void dataBusWrite(byte data) {
-#ifdef DATA_BUS_PORTB_MASK
-    PORTB = (PORTB & ~(DATA_BUS_PORTB_MASK)) | (DATA_BUS_PORTB_BITBANG(data) & DATA_BUS_PORTB_MASK);
-#endif
-#ifdef DATA_BUS_PORTC_MASK
-    PORTC = (PORTC & ~(DATA_BUS_PORTC_MASK)) | (DATA_BUS_PORTC_BITBANG(data) & DATA_BUS_PORTC_MASK);
-#endif
-#ifdef DATA_BUS_PORTD_MASK
-    PORTD = (PORTD & ~(DATA_BUS_PORTD_MASK)) | (DATA_BUS_PORTD_BITBANG(data) & DATA_BUS_PORTD_MASK);
-#endif
-    
+    digitalWrite(SHIFT_LATCH_PIN, LOW);
+    shiftOut(SHIFT_DATA_PIN, SHIFT_CLOCK_PIN, MSBFIRST, data);
+    digitalWrite(SHIFT_LATCH_PIN, HIGH);    
 }
 
 #ifdef USE_QD_PACKETIZER
@@ -117,17 +87,14 @@ void setup() {
     toggle_OC2B(8000000.0); // 8MHz
     pinMode(3, OUTPUT);
 
-#ifdef DATA_BUS_PORTB_MASK
-    DDRB |= DATA_BUS_PORTB_MASK;
-#endif
-#ifdef DATA_BUS_PORTC_MASK
-    DDRC |= DATA_BUS_PORTC_MASK;
-#endif
-#ifdef DATA_BUS_PORTD_MASK
-    DDRD |= DATA_BUS_PORTD_MASK;
-#endif
+    //Shift Register pins
+    pinMode(SHIFT_LATCH_PIN, OUTPUT);
+    pinMode(SHIFT_DATA_PIN, OUTPUT);
+    pinMode(SHIFT_CLOCK_PIN, OUTPUT);
 
-    
+    //LED pin
+    pinMode(LED_BUILTIN, OUTPUT);
+
     synth.begin();
     delay(200);
     blinkTest(3,200,200);
