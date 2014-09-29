@@ -12,12 +12,9 @@ extern void dataBusWrite(byte data);
 #define YM2612_IC_PORT PORTC
 #define YM2612_IC_DDR  DDRC 
 #define YM2612_IC_BIT  PORTC5
-#define YM2612_CS_PORT PORTC
-#define YM2612_CS_DDR  DDRC
-#define YM2612_CS_BIT  PORTC4
 #define YM2612_WR_PORT PORTC
 #define YM2612_WR_DDR  DDRC
-#define YM2612_WR_BIT  PORTC2
+#define YM2612_WR_BIT  PORTC4
 #define YM2612_A0_PORT PORTC
 #define YM2612_A0_DDR  DDRC
 #define YM2612_A0_BIT  PORTC1
@@ -25,6 +22,7 @@ extern void dataBusWrite(byte data);
 #define YM2612_A1_DDR  DDRC
 #define YM2612_A1_BIT  PORTC0
 // RD pin needs pullup. It isn't used.
+// Tie CS to WR
 
 class YM2612 {
     public:
@@ -262,11 +260,9 @@ class YM2612 {
             YM2612_A1_PORT |= bit(YM2612_A1_BIT); // A1 HIGH
         }
         YM2612_A0_PORT &= ~bit(YM2612_A0_BIT); // A0 LOW (select register)
-        YM2612_CS_PORT &= ~bit(YM2612_CS_BIT); // CS LOW
         write(reg);
         YM2612_A0_PORT |= bit(YM2612_A0_BIT);  // A0 HIGH (write register)
         write(data);
-        YM2612_CS_PORT |= bit(YM2612_CS_BIT); // CS HIGH
         interrupts();
     }
 
@@ -294,13 +290,11 @@ class YM2612 {
     void begin() {
         /* Pins setup */
         YM2612_IC_DDR |= bit(YM2612_IC_BIT);
-        YM2612_CS_DDR |= bit(YM2612_CS_BIT);
         YM2612_WR_DDR |= bit(YM2612_WR_BIT);
         YM2612_A0_DDR |= bit(YM2612_A0_BIT);
         YM2612_A1_DDR |= bit(YM2612_A1_BIT);
-        /* IC, CS, WR and RD HIGH by default */
+        /* IC, WR and RD HIGH by default */
         YM2612_IC_PORT |= bit(YM2612_IC_BIT);
-        YM2612_CS_PORT |= bit(YM2612_CS_BIT);
         YM2612_WR_PORT |= bit(YM2612_WR_BIT);
         /* A0 and A1 LOW by default */
         YM2612_A0_PORT &= bit(YM2612_A0_BIT);

@@ -7,12 +7,10 @@
 extern void dataBusWrite(byte data);
 
 /*PORTC corresponds to analog pins on the Uno */
-#define SN76489_CE_PORT PORTC
-#define SN76489_CE_DDR  DDRC
-#define SN76489_CE_BIT  3
 #define SN76489_WE_PORT PORTC
 #define SN76489_WE_DDR  DDRC
-#define SN76489_WE_BIT  2
+#define SN76489_WE_BIT  PORTC3
+// Tie CE to WE
 
 class SN76489 {
     public:
@@ -37,9 +35,7 @@ class SN76489 {
     inline static void write(byte data) {
         dataBusWrite(data);
 	    SN76489_WE_PORT &= ~bit(SN76489_WE_BIT); // WE LOW (latch)
-	    SN76489_CE_PORT &= ~bit(SN76489_CE_BIT); // CS LOW
 	    _delay_us(150);
-	    SN76489_CE_PORT |= bit(SN76489_CE_BIT); // CS HIGH
 	    SN76489_WE_PORT |= bit(SN76489_WE_BIT); // WE HIGH
     }
 
@@ -74,10 +70,7 @@ class SN76489 {
     static void begin() {
 	    /* Pins setup */
 	    SN76489_WE_DDR |= bit(SN76489_WE_BIT);
-	    SN76489_CE_DDR |= bit(SN76489_CE_BIT);
-
 	    SN76489_WE_PORT |= bit(SN76489_WE_BIT); // HIGH by default
-	    SN76489_CE_PORT |= bit(SN76489_CE_BIT); // HIGH by default
 
         /* shut up all the channels */
 	    level(CHAN1, 0);
