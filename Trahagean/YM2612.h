@@ -330,7 +330,6 @@ class YM2612 {
         YM2612_WR_DDR |= bit(YM2612_WR_BIT);
         YM2612_A0_DDR |= bit(YM2612_A0_BIT);
         YM2612_A1_DDR |= bit(YM2612_A1_BIT);
-
 #ifdef YM2612_DATA_PORTB_MASK
         DDRB |= YM2612_DATA_PORTB_MASK;
 #endif        
@@ -340,21 +339,18 @@ class YM2612 {
 #ifdef YM2612_DATA_PORTD_MASK
         DDRD |= YM2612_DATA_PORTD_MASK;
 #endif
-
-/* IC, CS, WR and RD HIGH by default */
+        /* IC, CS, WR and RD HIGH by default */
         YM2612_IC_PORT |= bit(YM2612_IC_BIT);
         YM2612_CS_PORT |= bit(YM2612_CS_BIT);
         YM2612_WR_PORT |= bit(YM2612_WR_BIT);
-/* A0 and A1 LOW by default */
+        /* A0 and A1 LOW by default */
         YM2612_A0_PORT &= bit(YM2612_A0_BIT);
         YM2612_A1_PORT &= bit(YM2612_A1_BIT);
-
         /* Reset YM2612 */
         YM2612_IC_PORT &= ~bit(YM2612_IC_BIT);
         _delay_ms(10);
         YM2612_IC_PORT |= bit(YM2612_IC_BIT);
         _delay_ms(10);
-
         /* YM2612 Test code */
         setGlobal22(Field::LFOEN, 0);
         /* make sure notes are off */
@@ -496,7 +492,8 @@ class YM2612 {
         setChannel(channel, Field::AMS,         0);
         setChannel(channel, Field::PMS,         0);
     }
-    
+
+
     void channelRegCopy(channel_e dest, channel_e src) {
         for (byte s = SLOT1; s < SLOT_COUNT; s++) {
             for (byte r = SLOT_REG1; r < SLOT_REG_LENGTH; r++) {
