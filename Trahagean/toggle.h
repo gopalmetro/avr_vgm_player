@@ -37,6 +37,34 @@
     OC1B      10    B   2
     OC2A      11    B   3
     OC2B       3    D   3
+    
+    Example for Uno putting 4Mhz on pin 5:
+    void setup() {
+        pinMode(5, OUTPUT);
+        toggle_OC0B(4000000.0);
+    }
+    
+    
+    Beware: specified frequencies are rounded up to the nearest value
+    the base clock supports, such that, on an Uno, 2700000 runs at 4000000.
+    Practical clocks on an Uno (at F_CPU = 16000000 or 125ns resolution):
+    8000000.000000,
+    4000000.000000,
+    2666666.666666,
+    2000000.000000,
+    1600000.000000,
+    1333333.333333,
+    1142857.142857,
+    1000000.000000,
+     888888.888888,
+     800000.000000,
+     727272.727272,
+     666666.666666,
+     615384.615384,
+     571428.571428,
+     533333.333333,
+     500000.000000,
+    etc. If you need more accuracy, use an external clock!
 */
 
 // Timer 0
