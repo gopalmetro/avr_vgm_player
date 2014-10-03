@@ -267,7 +267,7 @@ class MegaSynth {
         if (channel <= 5 || (10 <= channel && channel <= 12 )) {
             ym.frequency72(channel, keyToBlock(key), keyToFrequency72(key));
             if (channel <= 5) {
-                ym.level(channel, velocity);
+                ym.level(channel, 127 - velocity);
                 //kill existing notes -- is this what we want?
                 ym.setOperators(channel, 0);
                 ym.setOperators(channel, bit(YM2612::SLOT1) | bit(YM2612::SLOT2) | bit(YM2612::SLOT3) | bit(YM2612::SLOT4)); //enable ALL the operators

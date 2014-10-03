@@ -1,0 +1,17 @@
+Mult = Multiple
+DT = Detune
+TL = Total Level
+AR = Attack Rate
+DR = Decay Rate
+SL = Sustain Level
+???D2R = Sustain Rate???
+RR = Release Rate
+RS = Key Scale???
+???AM = Amplitude Modulation???
+???SSG-EG = Envelope???
+SSG-EG Check = 
+
+ALG = 
+FB = 
+AMS = 
+FMS = PMS
