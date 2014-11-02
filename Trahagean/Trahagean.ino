@@ -9,9 +9,62 @@
 //#define EQUAL_TEMPERAMENT_A4 440.0
 #include "MegaSynth.h"
 
+MegaSynth synth;
+
+// SAW WAVE DEMO
+volatile byte saw_sample[14] = {
+    0x00, 0x09,
+    0x12, 0x1B,
+    0x24, 0x2D,
+    0x36, 0x3F,
+    0x48, 0x51,
+    0x5A, 0x63,
+    0x6C, 0x75
+};
+
+// SQUARE WAVE DEMO
+volatile byte square_sample[14] = {
+    0x00,0x00,
+    0x00,0x00,
+    0x00,0x00,
+    0x00,0x7F,
+    0x7F,0x7F,
+    0x7F,0x7F,
+    0x7F,0x7F
+};
+
+volatile byte pos = 0;
+
+ISR(TIMER1_COMPA_vect)
+{
+//    YM2612::setPcmSample(saw_sample[pos]); //doesn't work??
+//    pos = (pos + 1) % 14;
+    if (!(pos = (pos + 1) % 7)) { //square wave on D13 (LED)
+        PORTB ^= bit(PORTB5);
+    }    
+}
+
+void setUpSample() {
+    YM2612::setPcm(1);
+    /*
+         Per http://www.engblaze.com/microcontroller-tutorial-avr-and-arduino-timer-interrupts/ 
+        "Timer prescaling and CTC"
+    */
+    // initialize Timer1
+    noInterrupts();          // disable global interrupts
+    TCCR1A = 0;     // set entire TCCR1A register to 0
+    // set compare match register to desired timer count:
+    OCR1A = 2596; // per the Timer table for 14 samples at 440Hz (6160Hz Sampling)
+    // set WGM12 bit for CTC mode and set CS10 bit for /1 prescaler:
+    TCCR1B = bit(WGM12) | bit(CS10);
+    // enable timer compare interrupt:
+    TIMSK1 |= (1 << OCIE1A);
+    interrupts();          // enable global interrupts
+}    
+
 //#define USE_QD_PACKETIZER
-//#define BAUDRATE MIDI_NATIVE_BAUDRATE
-#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
+#define BAUDRATE MIDI_NATIVE_BAUDRATE
+//#define BAUDRATE MIDI_SOFTWARE_BAUDRATE
 
 
 //rate for MIDI bridge software (for historical reasons this number is a multiple of 300)
@@ -19,8 +72,6 @@
 //standard MIDI rate (1MHz/32, easier for embedded systems)
 #define MIDI_NATIVE_BAUDRATE 31250
 
-
-MegaSynth synth;
 
 //Pin map for data pins is a bit complicated:
 //DATA_BUS_D0 through DATA_BUS_D1 map to PORTD pins 6-7 -- Uno digital pins 6-7
@@ -30,7 +81,6 @@ MegaSynth synth;
 
 #define DATA_BUS_PORTB_MASK B00111111
 #define DATA_BUS_PORTB_BITBANG(b) ((b) >> 2)
-
 
 #if !defined(DATA_BUS_PORTB_MASK) \
     && !defined(DATA_BUS_PORTC_MASK) \
@@ -57,7 +107,6 @@ void dataBusWrite(byte data) {
 #ifdef DATA_BUS_PORTD_MASK
     PORTD = (PORTD & ~(DATA_BUS_PORTD_MASK)) | (DATA_BUS_PORTD_BITBANG(data) & DATA_BUS_PORTD_MASK);
 #endif
-    
 }
 
 #ifdef USE_QD_PACKETIZER
@@ -136,6 +185,7 @@ void setup() {
     
     synth.begin();
     _delay_ms(200);
+    setUpSample();
     blinkTest(3,200,200);
     //blinkTest(3,400,200);
     //blinkTest(3,200,200);

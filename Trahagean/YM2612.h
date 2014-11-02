@@ -246,13 +246,18 @@ class YM2612 {
     }
 
 
-    inline byte whichReg(byte index) {
+    static inline byte whichReg(byte index) {
         return pgm_read_byte(&regLookup.flat[index]);
     }
 
 
-    void setRegDirect(part_e part, byte reg, byte data) {
+    static inline void setRegDirect(part_e part, byte reg, byte data) {
         noInterrupts();
+        setRegDirect_(part, reg, data);
+        interrupts();
+    }
+
+    static inline void setRegDirect_(part_e part, byte reg, byte data) {
         if (part == YM2612::PART1) {
             YM2612_A1_PORT &= ~bit(YM2612_A1_BIT); // A1 LOW
         }
@@ -263,11 +268,10 @@ class YM2612 {
         write(reg);
         YM2612_A0_PORT |= bit(YM2612_A0_BIT);  // A0 HIGH (write register)
         write(data);
-        interrupts();
     }
 
 
-    void setReg(part_e part, byte reg, byte data) {
+    inline void setReg(part_e part, byte reg, byte data) {
         state.flat[whichState(part, reg)] = data;
         setRegDirect(part, reg, data);
     }
@@ -276,7 +280,6 @@ class YM2612 {
     byte getReg(part_e part, byte reg) {
         return state.flat[pgm_read_byte(&stateLookup[part][reg])];
     }
-    
     
 //TODO set up masks for scaling carrier slot levels on MIDI velocity
 /* algorithm : carrier slots
@@ -393,6 +396,17 @@ class YM2612 {
 */
         }
     }
+
+    
+    static inline void setPcmSample(byte sample) {
+        setRegDirect_(PART1, 0x2A, sample);
+    }
+
+
+    static inline void setPcm(byte val) {
+        setRegDirect(PART1, 0x2B, val ? B10000000 : 0);
+    }
+
 
     void defaultVoice(channel_e channel) {
         setSlot(channel, SLOT1, Field::DT,     7);
