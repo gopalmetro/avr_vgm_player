@@ -1,3 +1,9 @@
+## Visual Micro
+Visual\ Micro/
+## Atmel Studio
+*.atsuo
+*.cppproj
+
 #################
 ## Eclipse
 #################
