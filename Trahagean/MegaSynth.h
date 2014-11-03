@@ -411,21 +411,21 @@ class MegaSynth {
 
 #define EQUAL_TEMPERAMENT_B4  (EQUAL_TEMPERAMENT_A4 * ROOT12_2 * ROOT12_2)
 
-//scale by 72 to get higher integer precision
+//scale by 72 and round to get higher integer precision
 const PROGMEM word MegaSynth::noteFreq72[MegaSynth::NOTE_COUNT] = 
 {
-    (word)(72.0 * EQUAL_TEMPERAMENT_C4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_Cs4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_D4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_Ds4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_E4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_F4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_Fs4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_G4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_Gs4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_A4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_As4),
-    (word)(72.0 * EQUAL_TEMPERAMENT_B4)
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_C4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_Cs4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_D4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_Ds4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_E4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_F4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_Fs4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_G4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_Gs4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_A4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_As4),
+    (word)(0.5 + 72.0 * EQUAL_TEMPERAMENT_B4)
 };
 
 
