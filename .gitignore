@@ -1,6 +1,7 @@
 ## Visual Micro
 Visual\ Micro/
 ## Atmel Studio
+*.atsln
 *.atsuo
 *.cppproj
 
